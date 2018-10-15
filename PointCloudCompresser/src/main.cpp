@@ -1,6 +1,13 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <boost/filesystem/path.hpp>
+#include <boost/algorithm/string.hpp>
+
+#include "Octree.h"
+#include "PointCloudIO.h"
+
+using namespace PCC;
 
 static void show_usage(std::string name)
 {
@@ -12,7 +19,7 @@ static void show_usage(std::string name)
         << std::endl;
 }
 
-int handleArgument(int argc, char* argv[], std::string& input, std::string& output)
+int handleArgument(int argc, char* argv[], std::string& input, std::string& output, int& depth)
 {
     if (argc < 2) {
         show_usage(argv[0]);
@@ -27,7 +34,7 @@ int handleArgument(int argc, char* argv[], std::string& input, std::string& outp
         }
         else if ((arg == "-i") || (arg == "--input")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                input = argv[i++]; // Increment 'i' so we don't get the argument as the next argv[i].
+                input = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
             }
             else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--input option requires one argument." << std::endl;
@@ -36,10 +43,19 @@ int handleArgument(int argc, char* argv[], std::string& input, std::string& outp
         }
         else if ((arg == "-o") || (arg == "--output")) {
             if (i + 1 < argc) {
-                output = argv[i++];
+                output = argv[++i];
             }
             else {
                 std::cerr << "--output option requires one argument." << std::endl;
+                return 1;
+            }
+        }
+        else if ((arg == "-d") || (arg == "--depth")) {
+            if (i + 1 < argc) {
+                depth = std::stoi(argv[++i]);
+            }
+            else {
+                std::cerr << "--depth option requires one argument." << std::endl;
                 return 1;
             }
         }
@@ -50,15 +66,50 @@ int handleArgument(int argc, char* argv[], std::string& input, std::string& outp
 int main(int argc, char* argv[])
 {
     std::string input, output;
+    int depth = 16;
 
     int failed = -1;
-    failed = handleArgument(argc, argv, input, output);
+    failed = handleArgument(argc, argv, input, output, depth);
     if (failed)
     {
         return failed;
     }
 
-    
+    // load the point cloud 
+    boost::filesystem::path inputPath(input);
 
+    // if input is ply, do encoding
+    if (boost::iequals(inputPath.extension().c_str(), ".ply"))
+    {
+        if (output.empty())
+            output = inputPath.parent_path().append(inputPath.stem().concat("new.ply").string()).string();
+
+        // load ply
+        PointCloudIO io;
+        auto pointCloud = io.loadPly(inputPath.string());
+
+        // Generate Octree
+        Octree octree(depth, pointCloud);
+
+        // Encode
+
+        // write pcc
+        //io.savePcc(output, pointCloud);
+        io.savePly(output, pointCloud);
+    }
+    // if input is pcc, do decoding
+    else if (boost::iequals(inputPath.extension().c_str(), ".PCC"))
+    {
+       if(output.empty())
+          output = inputPath.parent_path().append(inputPath.stem().concat(".ply").string()).string();
+           
+        // load & decode pcc
+        PointCloudIO io;
+        auto pointCloud = io.loadPcc(inputPath.string());
+
+        // write ply
+        io.savePly(output, pointCloud);
+    }
+    
     return 0;
 }

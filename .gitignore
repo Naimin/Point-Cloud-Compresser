@@ -15,3 +15,8 @@
 *.idb
 *.ipch
 *.gitattributes
+PointCloudCompresser/x64/
+x64/Debug/
+x64/Release/
+.vs/
+PointCloudCompresser/bunnynew.ply
