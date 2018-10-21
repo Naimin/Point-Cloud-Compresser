@@ -37,11 +37,19 @@ namespace PCC
         std::atomic<unsigned char> children; // one bit for each child
     };
 
+    typedef std::map<Index, Node> Level;
+
     class Octree
     {
         public:
             Octree(unsigned int maxDepth, PointCloud& pointCloud);
-            PointCloud getPointCloud(); // convert the octree back to point cloud 
+            PointCloud generatePointCloud(); // convert the octree back to point cloud 
+            
+            BoundingBox getBoundingBox() const;
+            Eigen::Vector3f getLeafCellSize() const;
+            std::vector<Level>& getLevels();
+            unsigned int getMaxDepth() const;
+            size_t getNumOfAllNodes() const;
 
         protected:
             void generate(unsigned int maxDepth, PointCloud& pointCloud);
@@ -57,7 +65,7 @@ namespace PCC
 
             // a vector to store each level
             // each level is a map of node
-            std::vector<std::map<Index, Node>> levels;
+            std::vector<Level> levels;
             std::vector<tbb::mutex> levelMutexs;
             BoundingBox bbox;
             Eigen::Vector3f leafCellSize;

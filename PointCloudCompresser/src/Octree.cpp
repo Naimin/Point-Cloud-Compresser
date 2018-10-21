@@ -9,7 +9,7 @@ PCC::Octree::Octree(unsigned int maxDepth, PointCloud& pointCloud) : levels(maxD
     generate(maxDepth, pointCloud);
 }
 
-PointCloud PCC::Octree::getPointCloud()
+PointCloud PCC::Octree::generatePointCloud()
 {
     auto& currentLevel = levels[levels.size() - 1];
     PointCloud pointCloud;
@@ -76,6 +76,37 @@ PointCloud PCC::Octree::getPointCloud()
     pointCloud.shrink_to_fit();
 
     return pointCloud;
+}
+
+BoundingBox PCC::Octree::getBoundingBox() const
+{
+    return bbox;
+}
+
+Eigen::Vector3f PCC::Octree::getLeafCellSize() const
+{
+    return leafCellSize;
+}
+
+std::vector<std::map<Index, Node>>& PCC::Octree::getLevels()
+{
+    return levels;
+}
+
+unsigned int PCC::Octree::getMaxDepth() const
+{
+    return (unsigned int)levels.size();
+}
+
+size_t PCC::Octree::getNumOfAllNodes() const
+{
+    size_t numOfNodes = 0;
+    for (auto& level : levels)
+    {
+        numOfNodes += level.size();
+    }
+
+    return numOfNodes;
 }
 
 void PCC::Octree::generate(unsigned int maxDepth, PointCloud& pointCloud)
@@ -204,10 +235,10 @@ bool PCC::Octree::addNode(const unsigned int level, const Index& index, const un
 
         // move up 1 level
         --localLevel;
-        // find the parent index 
-        localIndex = computeParentAddress(localIndex);
         // compute our child index
         localChild = computeOctreeChildIndex(localIndex);
+        // find the parent index 
+        localIndex = computeParentAddress(localIndex);
     }
     // hit a node that already exist or root node, then we just need to update the node
     addNodeChild(localLevel, localIndex, localChild);
