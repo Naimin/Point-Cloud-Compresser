@@ -6,6 +6,7 @@
 
 #include "Octree.h"
 #include "PointCloudIO.h"
+#include "Encoder.h"
 
 using namespace PCC;
 
@@ -91,9 +92,12 @@ int main(int argc, char* argv[])
         // Generate Octree
         Octree octree(depth, pointCloud);
 
-        pointCloud = octree.getPointCloud();
+        pointCloud = octree.generatePointCloud();
 
         // Encode
+        Encoder encoder;
+        
+        auto encodeData = encoder.encode(octree);
 
         // write pcc
         //io.savePcc(output, pointCloud);
