@@ -91,6 +91,8 @@ int main(int argc, char* argv[])
         // Generate Octree
         Octree octree(depth, pointCloud);
 
+        pointCloud = octree.getPointCloud();
+
         // Encode
 
         // write pcc

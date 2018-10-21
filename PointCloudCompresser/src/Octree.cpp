@@ -1,6 +1,6 @@
 #include "Octree.h"
 #include <tbb/parallel_for.h>
-
+#include <tbb/blocked_range.h>
 
 using namespace PCC;
 
@@ -9,19 +9,88 @@ PCC::Octree::Octree(unsigned int maxDepth, PointCloud& pointCloud) : levels(maxD
     generate(maxDepth, pointCloud);
 }
 
+PointCloud PCC::Octree::getPointCloud()
+{
+    auto& currentLevel = levels[levels.size() - 1];
+    PointCloud pointCloud;
+    pointCloud.resize(currentLevel.size() * 8); // maximum possible number of points, we will resize it back to actual size later
+
+    tbb::atomic<size_t> counter = 0; // keep track of how many actual point there is
+
+    // Hack: We should change the internal representation of each Octree Level as a vector instead of map.
+    std::vector<std::pair< Index, Node>> vectorized(currentLevel.begin(), currentLevel.end());
+    //tbb::parallel_for((size_t)0, vectorized.size(), [&](const size_t i)
+    for(size_t i = 0; i < vectorized.size(); ++i)
+    {
+        auto& itr = vectorized[i];
+        Index index = itr.first;
+        Node node = itr.second;
+        unsigned char child = node.children.load();
+        
+        // leafCellSize * 2 since it is the parent node size.
+        float nodeX = bbox.min.x() + leafCellSize.x() * 2 * index.index.x();
+        float nodeY = bbox.min.y() + leafCellSize.y() * 2 * index.index.y();
+        float nodeZ = bbox.min.z() + leafCellSize.z() * 2 * index.index.z();
+        Vector3f nodePos(nodeX, nodeY, nodeZ);
+        
+        for (unsigned char childId = 0; childId < 8; ++childId)
+        {
+            // for each child id, check if they exist
+            unsigned char childBit = 1 << childId;
+            unsigned char exist = child & childBit;
+            if (exist)
+            {
+                switch (exist)
+                {
+                    case 1:
+                        nodePos += Vector3f(0,0,0);
+                        break;
+                    case 2:
+                        nodePos += Vector3f(leafCellSize.x(), 0, 0);
+                        break;
+                    case 4:
+                        nodePos += Vector3f(0, leafCellSize.y(), 0);
+                        break;
+                    case 8:
+                        nodePos += Vector3f(leafCellSize.x(), leafCellSize.y(), 0);
+                        break;
+                    case 16:
+                        nodePos += Vector3f(0, 0, leafCellSize.z());
+                        break;
+                    case 32:
+                        nodePos += Vector3f(leafCellSize.x(), 0, leafCellSize.z());
+                        break;
+                    case 64:
+                        nodePos += Vector3f(0, leafCellSize.y(), leafCellSize.z());
+                        break;
+                    case 128:
+                        nodePos += Vector3f(leafCellSize.x(), leafCellSize.y(), leafCellSize.z());
+                        break;
+                }
+                pointCloud.positions[counter++] = nodePos;
+            }
+        }
+    }//);
+
+    pointCloud.resize(counter);
+    pointCloud.shrink_to_fit();
+
+    return pointCloud;
+}
+
 void PCC::Octree::generate(unsigned int maxDepth, PointCloud& pointCloud)
 {
-    const BoundingBox bbox = computeBoundingBox(pointCloud);
-
-    const Eigen::Vector3f leafCellSize = computeLeafCellSize(maxDepth, bbox);
+    bbox = computeBoundingBox(pointCloud);
+    leafCellSize = computeLeafCellSize(maxDepth, bbox);
 
     // for each point add it into the octree
-    tbb::parallel_for((size_t)0, pointCloud.positions.size(), [&](size_t index)
+    //tbb::parallel_for((size_t)0, pointCloud.positions.size(), [&](size_t index)
+    for(size_t index = 0; index < pointCloud.positions.size(); ++index)
     {
         Eigen::Vector3f& pos = pointCloud.positions[index];
         auto leafAddress = computeLeafAddress(bbox, leafCellSize, pos);
         addLeaf(maxDepth, leafAddress);
-    });
+    }//);
 }
 
 BoundingBox PCC::Octree::computeBoundingBox(PointCloud & pointCloud)
@@ -65,12 +134,12 @@ Index PCC::Octree::computeLeafAddress(const BoundingBox& bbox, const Eigen::Vect
     return Index(x,y,z);
 }
 
-Index PCC::Octree::computeParentAddress(const Index index)
+Index PCC::Octree::computeParentAddress(const Index& index)
 {
     return Index(index.index.x() / 2, index.index.y() / 2, index.index.z() / 2);
 }
 
-unsigned char PCC::Octree::computeOctreeChildIndex(const Index index)
+unsigned char PCC::Octree::computeOctreeChildIndex(const Index& index)
 {
     //top    bottom
     //|0|1|  |4|5|
@@ -89,7 +158,7 @@ unsigned char PCC::Octree::computeOctreeChildIndex(const Index index)
     return childIndex;
 }
 
-bool PCC::Octree::addLeaf(const unsigned int maxDepth, const Index index)
+bool PCC::Octree::addLeaf(const unsigned int maxDepth, const Index& index)
 {
     // get the parent address
     Index parent = computeParentAddress(index);
@@ -97,7 +166,7 @@ bool PCC::Octree::addLeaf(const unsigned int maxDepth, const Index index)
 
     // check if the parent exist 
     if (!nodeExist(maxDepth - 1, parent))
-        addNode(maxDepth - 1, parent);
+        addNode(maxDepth - 1, parent, octreeChild);
     
     // Add this child into the the parent node
     addNodeChild(maxDepth - 1, parent, octreeChild);
@@ -105,7 +174,7 @@ bool PCC::Octree::addLeaf(const unsigned int maxDepth, const Index index)
     return true;
 }
 
-bool PCC::Octree::nodeExist(const unsigned int level, const Index index)
+bool PCC::Octree::nodeExist(const unsigned int level, const Index& index)
 {
     if ((size_t)level > levels.size())
         return false;
@@ -118,23 +187,19 @@ bool PCC::Octree::nodeExist(const unsigned int level, const Index index)
     return itr != currentLevel.end();
 }
 
-bool PCC::Octree::addNode(const unsigned int level, const Index index)
+bool PCC::Octree::addNode(const unsigned int level, const Index& index, const unsigned int childIndex)
 {
     if ((size_t)level >= levels.size())
         return false;
 
     auto localLevel = level;
     auto localIndex = index;
-    unsigned int localChild = computeOctreeChildIndex(localIndex);
+    unsigned int localChild = childIndex;
 
     while (!nodeExist(localLevel, localIndex) && localLevel > 0)
     {
         tbb::mutex::scoped_lock lock(levelMutexs[localLevel]);
-        // create the node
-        levels[localLevel].insert(std::make_pair(localIndex, Node()));
-        
-        //addNode(localLevel, localIndex);
-        // update the child status
+        // Add and update the the child status
         addNodeChild(localLevel, localIndex, localChild);
 
         // move up 1 level
@@ -149,7 +214,7 @@ bool PCC::Octree::addNode(const unsigned int level, const Index index)
     return true;
 }
 
-void PCC::Octree::addNodeChild(const unsigned int level, const Index parentIndex, const unsigned int childIndex)
+void PCC::Octree::addNodeChild(const unsigned int level, const Index& parentIndex, const unsigned int childIndex)
 {
     auto& currentLevel = levels[level];
     currentLevel[parentIndex].addChild(childIndex);

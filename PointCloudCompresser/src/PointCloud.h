@@ -13,6 +13,7 @@ namespace PCC
         public:
             PointCloud(bool hasNormal = false, bool hasColor = false);
             void resize(size_t size);
+            void shrink_to_fit();
 
             bool isValid();
 

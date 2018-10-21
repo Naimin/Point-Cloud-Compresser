@@ -53,10 +53,10 @@ PointCloud PCC::PointCloudIO::loadPly(const std::string & path)
         try { vertices = file.request_properties_from_element("vertex", { "x", "y", "z" }); }
         catch (const std::exception & e) { std::cerr << "tinyply exception: " << e.what() << std::endl; }
 
-        try { normals = file.request_properties_from_element("vertex", { "nx", "ny", "nz" }, vertices->count); }
+        try { normals = file.request_properties_from_element("vertex", { "nx", "ny", "nz" }, (unsigned int)vertices->count); }
         catch (const std::exception & e) { std::cerr << "tinyply exception: " << e.what() << std::endl; }
 
-        try { colors = file.request_properties_from_element("vertex", { "red", "green", "blue" }, vertices->count); }
+        try { colors = file.request_properties_from_element("vertex", { "red", "green", "blue" }, (unsigned int)vertices->count); }
         catch (const std::exception & e) { std::cerr << "tinyply exception: " << e.what() << std::endl; }
 
         // Providing a list size hint (the last argument) is a 2x performance improvement. If you have 

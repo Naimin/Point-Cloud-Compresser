@@ -13,6 +13,15 @@ void PCC::PointCloud::resize(size_t size)
         colors.resize(size);
 }
 
+void PCC::PointCloud::shrink_to_fit()
+{
+    positions.shrink_to_fit();
+    if (hasNormal)
+        normals.shrink_to_fit();
+    if (hasColor)
+        colors.shrink_to_fit();
+}
+
 bool PCC::PointCloud::isValid()
 {
     return !positions.empty();
