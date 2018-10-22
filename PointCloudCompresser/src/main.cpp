@@ -8,7 +8,7 @@
 #include "PointCloudIO.h"
 #include "Encoder.h"
 
-using namespace PCC;
+using namespace CPC;
 
 static void show_usage(std::string name)
 {
@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
     if (boost::iequals(inputPath.extension().c_str(), ".ply"))
     {
         if (output.empty())
-            output = inputPath.parent_path().append(inputPath.stem().concat("new.ply").string()).string();
+            output = inputPath.parent_path().append(inputPath.stem().concat("new.cpc").string()).string();
 
         // load ply
         PointCloudIO io;
@@ -97,11 +97,11 @@ int main(int argc, char* argv[])
         // Encode
         Encoder encoder;
         
-        auto encodeData = encoder.encode(octree);
+        auto encodedData = encoder.encode(octree);
 
         // write pcc
-        //io.savePcc(output, pointCloud);
-        io.savePly(output, pointCloud);
+        io.saveCpc(output, encodedData);
+        //io.savePly(output, pointCloud);
     }
     // if input is pcc, do decoding
     else if (boost::iequals(inputPath.extension().c_str(), ".PCC"))
@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
            
         // load & decode pcc
         PointCloudIO io;
-        auto pointCloud = io.loadPcc(inputPath.string());
+        auto pointCloud = io.loadCpc(inputPath.string());
 
         // write ply
         io.savePly(output, pointCloud);

@@ -8,7 +8,7 @@
 #include "PointCloud.h"
 #include "BoundingBox.h"
 
-namespace PCC
+namespace CPC
 {
     struct Index
     {

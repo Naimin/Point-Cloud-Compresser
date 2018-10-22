@@ -1,7 +1,7 @@
 #pragma once
 #include <Eigen/dense>
 
-namespace PCC
+namespace CPC
 {
     struct BoundingBox
     {

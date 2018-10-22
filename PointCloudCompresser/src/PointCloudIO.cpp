@@ -4,7 +4,7 @@
 #include <chrono>
 #define TINYPLY_IMPLEMENTATION
 
-using namespace PCC;
+using namespace CPC;
 using namespace tinyply;
 
 class manual_timer
@@ -17,15 +17,15 @@ public:
     const double & get() { return timestamp; }
 };
 
-PCC::PointCloudIO::PointCloudIO()
+CPC::PointCloudIO::PointCloudIO()
 {
 }
 
-PCC::PointCloudIO::~PointCloudIO()
+CPC::PointCloudIO::~PointCloudIO()
 {
 }
 
-PointCloud PCC::PointCloudIO::loadPly(const std::string & path)
+PointCloud CPC::PointCloudIO::loadPly(const std::string & path)
 {
     try
     {
@@ -106,7 +106,7 @@ PointCloud PCC::PointCloudIO::loadPly(const std::string & path)
     return PointCloud();
 }
 
-bool PCC::PointCloudIO::savePly(const std::string & path, PointCloud & pointCloud)
+bool CPC::PointCloudIO::savePly(const std::string & path, PointCloud & pointCloud)
 {
     std::filebuf fb_binary;
     fb_binary.open(path, std::ios::out | std::ios::binary);
@@ -143,12 +143,36 @@ bool PCC::PointCloudIO::savePly(const std::string & path, PointCloud & pointClou
     return true;
 }
 
-PointCloud PCC::PointCloudIO::loadPcc(const std::string & path)
+PointCloud CPC::PointCloudIO::loadCpc(const std::string & path)
 {
+
+
     return PointCloud();
 }
 
-bool PCC::PointCloudIO::savePcc(const std::string & path, PointCloud & pointCloud)
+bool CPC::PointCloudIO::saveCpc(const std::string & path, EncodedData & encodedData)
 {
-    return false;
+    if (!encodedData.isValid())
+        return false;
+
+    std::ofstream outfile(path, std::ofstream::binary);
+    if (!outfile.is_open())
+        return false;
+
+    // write the scene bounding box
+    // Big Endian 
+    writeBinary(outfile, encodedData.sceneBoundingBox.min.x());
+    writeBinary(outfile, encodedData.sceneBoundingBox.min.y());
+    writeBinary(outfile, encodedData.sceneBoundingBox.min.z());
+    writeBinary(outfile, encodedData.sceneBoundingBox.max.x());
+    writeBinary(outfile, encodedData.sceneBoundingBox.max.y());
+    writeBinary(outfile, encodedData.sceneBoundingBox.max.z());
+    // write the max depth
+    writeBinary(outfile, encodedData.maxDepth);
+    // Write the encoded data
+    outfile.write((char*)encodedData.encodedData.data(), encodedData.encodedData.size() * sizeof(unsigned char));
+
+    outfile.close();
+
+    return true;
 }

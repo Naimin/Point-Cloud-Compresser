@@ -1,14 +1,15 @@
 #pragma once
 #include "Octree.h"
+#include <fstream>  
 
-namespace PCC
+namespace CPC
 {
     // Data the help store and write the encoded data
     struct EncodedData
     {
         EncodedData() : maxDepth(0) {};
         bool isValid();
-
+        
         BoundingBox sceneBoundingBox;
         unsigned char maxDepth;
         std::vector<unsigned char> encodedData;
@@ -34,5 +35,4 @@ namespace PCC
         protected:
             void DepthFirstTransveral(Octree& octree, EncodedData& encodeData);
     };
-
 }

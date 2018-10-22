@@ -1,7 +1,9 @@
 #include "BoundingBox.h"
 #include <numeric>
 
-PCC::BoundingBox::BoundingBox() : min(Eigen::Vector3f(std::numeric_limits<float>::max(),
+using namespace CPC;
+
+BoundingBox::BoundingBox() : min(Eigen::Vector3f(std::numeric_limits<float>::max(),
                                                       std::numeric_limits<float>::max(), 
                                                       std::numeric_limits<float>::max())),
                                   max(Eigen::Vector3f(std::numeric_limits<float>::lowest(), 
@@ -10,7 +12,7 @@ PCC::BoundingBox::BoundingBox() : min(Eigen::Vector3f(std::numeric_limits<float>
 {
 }
 
-void PCC::BoundingBox::expand(const Eigen::Vector3f & point)
+void BoundingBox::expand(const Eigen::Vector3f & point)
 {
     min.x() = min.x() < point.x() ? min.x() : point.x();
     min.y() = min.y() < point.y() ? min.y() : point.y();

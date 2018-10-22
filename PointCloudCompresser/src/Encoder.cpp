@@ -1,7 +1,7 @@
 #include "Encoder.h"
 #include <stack>
 
-using namespace PCC;
+using namespace CPC;
 
 bool EncodedData::isValid()
 {
@@ -27,7 +27,7 @@ EncodedData Encoder::encode(Octree & octree)
     return data;
 }
 
-void PCC::Encoder::DepthFirstTransveral(Octree & octree, EncodedData & data)
+void Encoder::DepthFirstTransveral(Octree & octree, EncodedData & data)
 {
     // since we know exactly how many node there is to write, we just allocate them
     data.encodedData.resize(octree.getNumOfAllNodes());
@@ -93,6 +93,5 @@ void PCC::Encoder::DepthFirstTransveral(Octree & octree, EncodedData & data)
                 }
             }
         }
-
     }
 }

@@ -1,10 +1,10 @@
 #include "PointCloud.h"
 
-PCC::PointCloud::PointCloud(bool hasNormal_, bool hasColor_) : hasNormal(hasNormal_), hasColor(hasColor_)
+CPC::PointCloud::PointCloud(bool hasNormal_, bool hasColor_) : hasNormal(hasNormal_), hasColor(hasColor_)
 {
 }
 
-void PCC::PointCloud::resize(size_t size)
+void CPC::PointCloud::resize(size_t size)
 {
     positions.resize(size);
     if (hasNormal)
@@ -13,7 +13,7 @@ void PCC::PointCloud::resize(size_t size)
         colors.resize(size);
 }
 
-void PCC::PointCloud::shrink_to_fit()
+void CPC::PointCloud::shrink_to_fit()
 {
     positions.shrink_to_fit();
     if (hasNormal)
@@ -22,7 +22,7 @@ void PCC::PointCloud::shrink_to_fit()
         colors.shrink_to_fit();
 }
 
-bool PCC::PointCloud::isValid()
+bool CPC::PointCloud::isValid()
 {
     return !positions.empty();
 }

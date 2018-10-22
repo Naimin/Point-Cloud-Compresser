@@ -2,7 +2,7 @@
 #include <vector>
 #include <Eigen/dense>
 
-namespace PCC
+namespace CPC
 {
     typedef Eigen::Matrix<unsigned char, 1, 1> Vector3u;
     typedef Eigen::Vector3f Vector3f;

@@ -2,14 +2,14 @@
 #include <tbb/parallel_for.h>
 #include <tbb/blocked_range.h>
 
-using namespace PCC;
+using namespace CPC;
 
-PCC::Octree::Octree(unsigned int maxDepth, PointCloud& pointCloud) : levels(maxDepth), levelMutexs(maxDepth)
+Octree::Octree(unsigned int maxDepth, PointCloud& pointCloud) : levels(maxDepth), levelMutexs(maxDepth)
 {
     generate(maxDepth, pointCloud);
 }
 
-PointCloud PCC::Octree::generatePointCloud()
+PointCloud Octree::generatePointCloud()
 {
     auto& currentLevel = levels[levels.size() - 1];
     PointCloud pointCloud;
@@ -78,27 +78,27 @@ PointCloud PCC::Octree::generatePointCloud()
     return pointCloud;
 }
 
-BoundingBox PCC::Octree::getBoundingBox() const
+BoundingBox Octree::getBoundingBox() const
 {
     return bbox;
 }
 
-Eigen::Vector3f PCC::Octree::getLeafCellSize() const
+Eigen::Vector3f Octree::getLeafCellSize() const
 {
     return leafCellSize;
 }
 
-std::vector<std::map<Index, Node>>& PCC::Octree::getLevels()
+std::vector<std::map<Index, Node>>& Octree::getLevels()
 {
     return levels;
 }
 
-unsigned int PCC::Octree::getMaxDepth() const
+unsigned int Octree::getMaxDepth() const
 {
     return (unsigned int)levels.size();
 }
 
-size_t PCC::Octree::getNumOfAllNodes() const
+size_t Octree::getNumOfAllNodes() const
 {
     size_t numOfNodes = 0;
     for (auto& level : levels)
@@ -109,7 +109,7 @@ size_t PCC::Octree::getNumOfAllNodes() const
     return numOfNodes;
 }
 
-void PCC::Octree::generate(unsigned int maxDepth, PointCloud& pointCloud)
+void Octree::generate(unsigned int maxDepth, PointCloud& pointCloud)
 {
     bbox = computeBoundingBox(pointCloud);
     leafCellSize = computeLeafCellSize(maxDepth, bbox);
@@ -124,7 +124,7 @@ void PCC::Octree::generate(unsigned int maxDepth, PointCloud& pointCloud)
     }//);
 }
 
-BoundingBox PCC::Octree::computeBoundingBox(PointCloud & pointCloud)
+BoundingBox Octree::computeBoundingBox(PointCloud & pointCloud)
 {
     BoundingBox bbox;
 
@@ -136,7 +136,7 @@ BoundingBox PCC::Octree::computeBoundingBox(PointCloud & pointCloud)
     return bbox;
 }
 
-Eigen::Vector3f PCC::Octree::computeLeafCellSize(const unsigned int maxDepth, const BoundingBox& bbox)
+Eigen::Vector3f Octree::computeLeafCellSize(const unsigned int maxDepth, const BoundingBox& bbox)
 {
     Eigen::Vector3f volume = bbox.max - bbox.min;
 
@@ -149,7 +149,7 @@ Eigen::Vector3f PCC::Octree::computeLeafCellSize(const unsigned int maxDepth, co
     return volume;
 }
 
-Index PCC::Octree::computeLeafAddress(const BoundingBox& bbox, const Eigen::Vector3f& leafCellSize, const Eigen::Vector3f& point)
+Index Octree::computeLeafAddress(const BoundingBox& bbox, const Eigen::Vector3f& leafCellSize, const Eigen::Vector3f& point)
 {
     Vector3f localPos = point - bbox.min;
 
@@ -165,12 +165,12 @@ Index PCC::Octree::computeLeafAddress(const BoundingBox& bbox, const Eigen::Vect
     return Index(x,y,z);
 }
 
-Index PCC::Octree::computeParentAddress(const Index& index)
+Index Octree::computeParentAddress(const Index& index)
 {
     return Index(index.index.x() / 2, index.index.y() / 2, index.index.z() / 2);
 }
 
-unsigned char PCC::Octree::computeOctreeChildIndex(const Index& index)
+unsigned char Octree::computeOctreeChildIndex(const Index& index)
 {
     //top    bottom
     //|0|1|  |4|5|
@@ -189,7 +189,7 @@ unsigned char PCC::Octree::computeOctreeChildIndex(const Index& index)
     return childIndex;
 }
 
-bool PCC::Octree::addLeaf(const unsigned int maxDepth, const Index& index)
+bool Octree::addLeaf(const unsigned int maxDepth, const Index& index)
 {
     // get the parent address
     Index parent = computeParentAddress(index);
@@ -205,7 +205,7 @@ bool PCC::Octree::addLeaf(const unsigned int maxDepth, const Index& index)
     return true;
 }
 
-bool PCC::Octree::nodeExist(const unsigned int level, const Index& index)
+bool Octree::nodeExist(const unsigned int level, const Index& index)
 {
     if ((size_t)level > levels.size())
         return false;
@@ -218,7 +218,7 @@ bool PCC::Octree::nodeExist(const unsigned int level, const Index& index)
     return itr != currentLevel.end();
 }
 
-bool PCC::Octree::addNode(const unsigned int level, const Index& index, const unsigned int childIndex)
+bool Octree::addNode(const unsigned int level, const Index& index, const unsigned int childIndex)
 {
     if ((size_t)level >= levels.size())
         return false;
@@ -245,13 +245,13 @@ bool PCC::Octree::addNode(const unsigned int level, const Index& index, const un
     return true;
 }
 
-void PCC::Octree::addNodeChild(const unsigned int level, const Index& parentIndex, const unsigned int childIndex)
+void Octree::addNodeChild(const unsigned int level, const Index& parentIndex, const unsigned int childIndex)
 {
     auto& currentLevel = levels[level];
     currentLevel[parentIndex].addChild(childIndex);
 }
 
-bool PCC::Node::addChild(unsigned char index)
+bool Node::addChild(unsigned char index)
 {
     unsigned char childBit = 1 << index;
     children.fetch_or(childBit);
