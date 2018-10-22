@@ -7,6 +7,7 @@
 #include "Octree.h"
 #include "PointCloudIO.h"
 #include "Encoder.h"
+#include "Decoder.h"
 
 using namespace CPC;
 
@@ -83,7 +84,7 @@ int main(int argc, char* argv[])
     if (boost::iequals(inputPath.extension().c_str(), ".ply"))
     {
         if (output.empty())
-            output = inputPath.parent_path().append(inputPath.stem().concat("new.cpc").string()).string();
+            output = inputPath.parent_path().append(inputPath.stem().concat(".cpc").string()).string();
 
         // load ply
         PointCloudIO io;
@@ -96,7 +97,6 @@ int main(int argc, char* argv[])
 
         // Encode
         Encoder encoder;
-        
         auto encodedData = encoder.encode(octree);
 
         // write pcc
@@ -104,17 +104,21 @@ int main(int argc, char* argv[])
         //io.savePly(output, pointCloud);
     }
     // if input is pcc, do decoding
-    else if (boost::iequals(inputPath.extension().c_str(), ".PCC"))
+    else if (boost::iequals(inputPath.extension().c_str(), ".cpc"))
     {
        if(output.empty())
           output = inputPath.parent_path().append(inputPath.stem().concat(".ply").string()).string();
            
-        // load & decode pcc
+        // load pcc
         PointCloudIO io;
-        auto pointCloud = io.loadCpc(inputPath.string());
+        auto encodedData = io.loadCpc(inputPath.string());
+
+        // decoded into octree
+        Decoder decoder;
+        auto octree = decoder.decode(encodedData);
 
         // write ply
-        io.savePly(output, pointCloud);
+        io.savePly(output, octree.generatePointCloud());
     }
     
     return 0;

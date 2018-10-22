@@ -15,9 +15,9 @@ namespace CPC
         std::vector<unsigned char> encodedData;
     };
 
-    struct TransveralData
+    struct TransversalData
     {
-        TransveralData(unsigned char level_, Index index_, Node node_) : level(level_), index(index_), node(node_) {}
+        TransversalData(unsigned char level_, Index index_, Node node_) : level(level_), index(index_), node(node_) {}
 
         unsigned char level;
         Index index;
@@ -33,6 +33,6 @@ namespace CPC
             EncodedData encode(Octree& octree);
 
         protected:
-            void DepthFirstTransveral(Octree& octree, EncodedData& encodeData);
+            void DepthFirstTransversal(Octree& octree, EncodedData& encodeData);
     };
 }

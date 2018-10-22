@@ -143,11 +143,33 @@ bool CPC::PointCloudIO::savePly(const std::string & path, PointCloud & pointClou
     return true;
 }
 
-PointCloud CPC::PointCloudIO::loadCpc(const std::string & path)
+EncodedData CPC::PointCloudIO::loadCpc(const std::string & path)
 {
+    EncodedData data;
 
+    std::ifstream inFile(path, std::ifstream::binary);
+    if (!inFile.is_open())
+        return data;
+    
+    // read in the scene bounding box
+    readBinary(inFile, data.sceneBoundingBox.min.x());
+    readBinary(inFile, data.sceneBoundingBox.min.y());
+    readBinary(inFile, data.sceneBoundingBox.min.z());
+    readBinary(inFile, data.sceneBoundingBox.max.x());
+    readBinary(inFile, data.sceneBoundingBox.max.y());
+    readBinary(inFile, data.sceneBoundingBox.max.z());
+    // read in the max depth
+    readBinary(inFile, data.maxDepth);
+    // read in the number of node
+    size_t numOfNode;
+    readBinary(inFile, numOfNode);
 
-    return PointCloud();
+    // allocate the number of nodes
+    data.encodedData.resize(numOfNode);
+    // read in the whole chunk of encoded data
+    inFile.read((char*)data.encodedData.data(), numOfNode * sizeof(unsigned char));
+
+    return data;
 }
 
 bool CPC::PointCloudIO::saveCpc(const std::string & path, EncodedData & encodedData)
@@ -155,24 +177,26 @@ bool CPC::PointCloudIO::saveCpc(const std::string & path, EncodedData & encodedD
     if (!encodedData.isValid())
         return false;
 
-    std::ofstream outfile(path, std::ofstream::binary);
-    if (!outfile.is_open())
+    std::ofstream outFile(path, std::ofstream::binary);
+    if (!outFile.is_open())
         return false;
 
     // write the scene bounding box
     // Big Endian 
-    writeBinary(outfile, encodedData.sceneBoundingBox.min.x());
-    writeBinary(outfile, encodedData.sceneBoundingBox.min.y());
-    writeBinary(outfile, encodedData.sceneBoundingBox.min.z());
-    writeBinary(outfile, encodedData.sceneBoundingBox.max.x());
-    writeBinary(outfile, encodedData.sceneBoundingBox.max.y());
-    writeBinary(outfile, encodedData.sceneBoundingBox.max.z());
+    writeBinary(outFile, encodedData.sceneBoundingBox.min.x());
+    writeBinary(outFile, encodedData.sceneBoundingBox.min.y());
+    writeBinary(outFile, encodedData.sceneBoundingBox.min.z());
+    writeBinary(outFile, encodedData.sceneBoundingBox.max.x());
+    writeBinary(outFile, encodedData.sceneBoundingBox.max.y());
+    writeBinary(outFile, encodedData.sceneBoundingBox.max.z());
     // write the max depth
-    writeBinary(outfile, encodedData.maxDepth);
+    writeBinary(outFile, encodedData.maxDepth);
+    // write the number of node
+    writeBinary(outFile, encodedData.encodedData.size());
     // Write the encoded data
-    outfile.write((char*)encodedData.encodedData.data(), encodedData.encodedData.size() * sizeof(unsigned char));
+    outFile.write((char*)encodedData.encodedData.data(), encodedData.encodedData.size() * sizeof(unsigned char));
 
-    outfile.close();
+    outFile.close();
 
     return true;
 }

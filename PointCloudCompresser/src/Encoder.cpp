@@ -22,26 +22,26 @@ EncodedData Encoder::encode(Octree & octree)
     data.sceneBoundingBox = octree.getBoundingBox();
     data.maxDepth = octree.getMaxDepth();
 
-    DepthFirstTransveral(octree, data);
+    DepthFirstTransversal(octree, data);
 
     return data;
 }
 
-void Encoder::DepthFirstTransveral(Octree & octree, EncodedData & data)
+void Encoder::DepthFirstTransversal(Octree & octree, EncodedData & data)
 {
     // since we know exactly how many node there is to write, we just allocate them
     data.encodedData.resize(octree.getNumOfAllNodes());
     auto& levels = octree.getLevels();
     size_t counter = 0; // track how many node is written
 
-    std::stack<TransveralData> stack;
+    std::stack<TransversalData> stack;
     
-    TransveralData root(0, levels[0].begin()->first, levels[0].begin()->second);
+    TransversalData root(0, levels[0].begin()->first, levels[0].begin()->second);
     stack.push(root);
     
     while (!stack.empty())
     {
-        TransveralData trans = stack.top();
+        TransversalData trans = stack.top();
         stack.pop();
 
         // Write into the data when evaluating a new node.
@@ -88,7 +88,7 @@ void Encoder::DepthFirstTransveral(Octree & octree, EncodedData & data)
                 // only push node if there is actual child node
                 if (trans.level + 1 < data.maxDepth)
                 {
-                    TransveralData transChild(trans.level + 1, childIndex, levels[trans.level + 1][childIndex]);
+                    TransversalData transChild(trans.level + 1, childIndex, levels[trans.level + 1][childIndex]);
                     stack.push(transChild);
                 }
             }

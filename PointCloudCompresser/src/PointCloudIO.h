@@ -14,7 +14,7 @@ namespace CPC
             PointCloud loadPly(const std::string& path);
             bool savePly(const std::string& path, PointCloud& pointCloud);
 
-            PointCloud loadCpc(const std::string& path);
+            EncodedData loadCpc(const std::string& path);
             bool saveCpc(const std::string& path, EncodedData& encodedData);
 
         protected:
@@ -22,6 +22,12 @@ namespace CPC
             void writeBinary(std::ofstream& fstream, T val)
             {
                 fstream.write((char*)&val, sizeof(val));
+            }
+
+            template<class T>
+            void readBinary(std::ifstream& fstream, T& val)
+            {
+                fstream.read((char*)&val, sizeof(T));
             }
     };
 }

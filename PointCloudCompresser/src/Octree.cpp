@@ -4,6 +4,10 @@
 
 using namespace CPC;
 
+CPC::Octree::Octree(unsigned int maxDepth) : levels(maxDepth), levelMutexs(maxDepth)
+{
+}
+
 Octree::Octree(unsigned int maxDepth, PointCloud& pointCloud) : levels(maxDepth), levelMutexs(maxDepth)
 {
     generate(maxDepth, pointCloud);
