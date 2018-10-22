@@ -4,7 +4,7 @@
 
 using namespace CPC;
 
-CPC::Octree::Octree(unsigned int maxDepth) : levels(maxDepth), levelMutexs(maxDepth)
+CPC::Octree::Octree(unsigned int maxDepth, BoundingBox& bbox_) : levels(maxDepth), levelMutexs(maxDepth), bbox(bbox_)
 {
 }
 

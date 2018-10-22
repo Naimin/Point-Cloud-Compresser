@@ -42,7 +42,7 @@ namespace CPC
     class Octree
     {
         public:
-            Octree(unsigned int maxDepth);
+            Octree(unsigned int maxDepth, BoundingBox& bbox);
             Octree(unsigned int maxDepth, PointCloud& pointCloud);
             PointCloud generatePointCloud(); // convert the octree back to point cloud 
             

@@ -102,7 +102,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>D:\Master\PointCloudCompresser\thirdparty\tinyply;D:\Master\PointCloudCompresser\thirdparty\Eigen;D:\Master\PointCloudCompresser\thirdparty\tbb\include;D:\Master\PointCloudCompresser\thirdparty\boost_1_63_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\Master\PointCloudCompresser\PointCloudCompresser\src\tinyply;D:\Master\PointCloudCompresser\thirdparty\Eigen;D:\Master\PointCloudCompresser\thirdparty\tbb\include;D:\Master\PointCloudCompresser\thirdparty\boost_1_63_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -156,11 +156,6 @@ copy /Y "..\thirdparty\boost_1_63_0\lib64-msvc-14.0\boost_filesystem-vc140-mt-1_
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\thirdparty\tinyply\example.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\thirdparty\tinyply\tinyply.cpp" />
     <ClCompile Include="src\BoundingBox.cpp" />
     <ClCompile Include="src\Decoder.cpp" />
     <ClCompile Include="src\Encoder.cpp" />
@@ -168,15 +163,16 @@ copy /Y "..\thirdparty\boost_1_63_0\lib64-msvc-14.0\boost_filesystem-vc140-mt-1_
     <ClCompile Include="src\Octree.cpp" />
     <ClCompile Include="src\PointCloud.cpp" />
     <ClCompile Include="src\PointCloudIO.cpp" />
+    <ClCompile Include="src\tinyply\tinyply.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\thirdparty\tinyply\tinyply.h" />
     <ClInclude Include="src\BoundingBox.h" />
     <ClInclude Include="src\Decoder.h" />
     <ClInclude Include="src\Encoder.h" />
     <ClInclude Include="src\Octree.h" />
     <ClInclude Include="src\PointCloud.h" />
     <ClInclude Include="src\PointCloudIO.h" />
+    <ClInclude Include="src\tinyply\tinyply.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

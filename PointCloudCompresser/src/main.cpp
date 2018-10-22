@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
     else if (boost::iequals(inputPath.extension().c_str(), ".cpc"))
     {
        if(output.empty())
-          output = inputPath.parent_path().append(inputPath.stem().concat(".ply").string()).string();
+          output = inputPath.parent_path().append(inputPath.stem().concat("_decoded.ply").string()).string();
            
         // load pcc
         PointCloudIO io;

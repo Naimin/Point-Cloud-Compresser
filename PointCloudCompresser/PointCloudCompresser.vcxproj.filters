@@ -36,14 +36,11 @@
     <ClCompile Include="src\PointCloudIO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\thirdparty\tinyply\tinyply.cpp">
-      <Filter>Source Files\tinyply</Filter>
-    </ClCompile>
-    <ClCompile Include="..\thirdparty\tinyply\example.cpp">
-      <Filter>Source Files\tinyply</Filter>
-    </ClCompile>
     <ClCompile Include="src\BoundingBox.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tinyply\tinyply.cpp">
+      <Filter>Source Files\tinyply</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -62,11 +59,11 @@
     <ClInclude Include="src\PointCloudIO.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\thirdparty\tinyply\tinyply.h">
-      <Filter>Source Files\tinyply</Filter>
-    </ClInclude>
     <ClInclude Include="src\BoundingBox.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tinyply\tinyply.h">
+      <Filter>Source Files\tinyply</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

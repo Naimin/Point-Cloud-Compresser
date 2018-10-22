@@ -12,8 +12,8 @@ Decoder::~Decoder()
 
 Octree Decoder::decode(EncodedData& data)
 {
-    Octree octree(data.maxDepth);
-    
+    Octree octree(data.maxDepth, data.sceneBoundingBox);
+
     DepthFirstTransversal(data, octree);
     
     return octree;
