@@ -1,3 +1,17 @@
 *.opendb
 *.suo
 *.db
+*.dll
+*.obj
+*.pdb
+*.ipdb
+*.iobj
+*.exe
+*.ilk
+*.lib
+*.log
+*.tlog
+*.lastbuildstate
+*.idb
+*.ipch
+*.gitattributes
