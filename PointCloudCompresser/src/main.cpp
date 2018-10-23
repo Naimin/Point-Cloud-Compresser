@@ -99,17 +99,16 @@ int main(int argc, char* argv[])
         Encoder encoder;
         auto encodedData = encoder.encode(octree);
 
-        // write pcc
+        // write cpc
         io.saveCpc(output, encodedData);
-        //io.savePly(output, pointCloud);
     }
-    // if input is pcc, do decoding
+    // if input is cpc, do decoding
     else if (boost::iequals(inputPath.extension().c_str(), ".cpc"))
     {
        if(output.empty())
           output = inputPath.parent_path().append(inputPath.stem().concat("_decoded.ply").string()).string();
            
-        // load pcc
+        // load cpc
         PointCloudIO io;
         auto encodedData = io.loadCpc(inputPath.string());
 

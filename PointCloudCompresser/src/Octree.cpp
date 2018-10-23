@@ -23,8 +23,8 @@ PointCloud Octree::generatePointCloud()
 
     // Hack: We should change the internal representation of each Octree Level as a vector instead of map.
     std::vector<std::pair< Index, Node>> vectorized(currentLevel.begin(), currentLevel.end());
-    //tbb::parallel_for((size_t)0, vectorized.size(), [&](const size_t i)
-    for(size_t i = 0; i < vectorized.size(); ++i)
+    tbb::parallel_for((size_t)0, vectorized.size(), [&](const size_t i)
+    //for(size_t i = 0; i < vectorized.size(); ++i)
     {
         auto& itr = vectorized[i];
         Index index = itr.first;
@@ -74,7 +74,7 @@ PointCloud Octree::generatePointCloud()
                 pointCloud.positions[counter++] = nodePos;
             }
         }
-    }//);
+    });
 
     pointCloud.resize(counter);
     pointCloud.shrink_to_fit();
@@ -119,13 +119,13 @@ void Octree::generate(unsigned int maxDepth, PointCloud& pointCloud)
     leafCellSize = computeLeafCellSize(maxDepth, bbox);
 
     // for each point add it into the octree
-    //tbb::parallel_for((size_t)0, pointCloud.positions.size(), [&](size_t index)
-    for(size_t index = 0; index < pointCloud.positions.size(); ++index)
+    tbb::parallel_for((size_t)0, pointCloud.positions.size(), [&](size_t index)
+    //for(size_t index = 0; index < pointCloud.positions.size(); ++index)
     {
         Eigen::Vector3f& pos = pointCloud.positions[index];
         auto leafAddress = computeLeafAddress(bbox, leafCellSize, pos);
         addLeaf(maxDepth, leafAddress);
-    }//);
+    });
 }
 
 BoundingBox Octree::computeBoundingBox(PointCloud & pointCloud)

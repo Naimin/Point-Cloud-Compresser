@@ -2,6 +2,10 @@
 #include <iostream>
 #include <fstream>
 #include <chrono>
+#include <boost/filesystem.hpp>
+#include <Boost/filesystem/path.hpp>
+#include "Huffman.h"
+
 #define TINYPLY_IMPLEMENTATION
 
 using namespace CPC;
@@ -143,11 +147,18 @@ bool CPC::PointCloudIO::savePly(const std::string & path, PointCloud & pointClou
     return true;
 }
 
-EncodedData CPC::PointCloudIO::loadCpc(const std::string & path)
+EncodedData CPC::PointCloudIO::loadCpc(const std::string & inputPath)
 {
+    // Decompress the huffman encoding first
+    // create the decompressed point cloud file
+    boost::filesystem::path decompressedFilePath(inputPath);
+    decompressedFilePath = decompressedFilePath.replace_extension(".dpc"); 
+    Huffman::Huffman huffman;
+    huffman.decompress(inputPath, decompressedFilePath.string());
+
     EncodedData data;
 
-    std::ifstream inFile(path, std::ifstream::binary);
+    std::ifstream inFile(decompressedFilePath.string(), std::ifstream::binary);
     if (!inFile.is_open())
         return data;
     
@@ -169,15 +180,23 @@ EncodedData CPC::PointCloudIO::loadCpc(const std::string & path)
     // read in the whole chunk of encoded data
     inFile.read((char*)data.encodedData.data(), numOfNode * sizeof(unsigned char));
 
+    inFile.close();
+
+    // delete the decompressed point cloud file
+    boost::filesystem::remove(decompressedFilePath);
+
     return data;
 }
 
-bool CPC::PointCloudIO::saveCpc(const std::string & path, EncodedData & encodedData)
+bool CPC::PointCloudIO::saveCpc(const std::string & outputPath, EncodedData & encodedData)
 {
     if (!encodedData.isValid())
         return false;
 
-    std::ofstream outFile(path, std::ofstream::binary);
+    // create the decompressed point cloud file
+    boost::filesystem::path decompressedFilePath(outputPath);
+    decompressedFilePath = decompressedFilePath.replace_extension(".dpc");
+    std::ofstream outFile(decompressedFilePath.string(), std::fstream::binary);
     if (!outFile.is_open())
         return false;
 
@@ -198,5 +217,12 @@ bool CPC::PointCloudIO::saveCpc(const std::string & path, EncodedData & encodedD
 
     outFile.close();
 
-    return true;
+    // Compress using the huffman encoding
+    Huffman::Huffman huffman;
+    bool success = huffman.compress(decompressedFilePath.string(), outputPath);
+
+    // delete the decompressed point cloud file
+    boost::filesystem::remove(decompressedFilePath);
+
+    return success;
 }

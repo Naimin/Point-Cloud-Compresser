@@ -159,6 +159,7 @@ copy /Y "..\thirdparty\boost_1_63_0\lib64-msvc-14.0\boost_filesystem-vc140-mt-1_
     <ClCompile Include="src\BoundingBox.cpp" />
     <ClCompile Include="src\Decoder.cpp" />
     <ClCompile Include="src\Encoder.cpp" />
+    <ClCompile Include="src\Huffman.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Octree.cpp" />
     <ClCompile Include="src\PointCloud.cpp" />
@@ -169,6 +170,7 @@ copy /Y "..\thirdparty\boost_1_63_0\lib64-msvc-14.0\boost_filesystem-vc140-mt-1_
     <ClInclude Include="src\BoundingBox.h" />
     <ClInclude Include="src\Decoder.h" />
     <ClInclude Include="src\Encoder.h" />
+    <ClInclude Include="src\Huffman.h" />
     <ClInclude Include="src\Octree.h" />
     <ClInclude Include="src\PointCloud.h" />
     <ClInclude Include="src\PointCloudIO.h" />

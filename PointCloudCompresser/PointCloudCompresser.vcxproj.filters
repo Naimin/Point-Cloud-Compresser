@@ -42,6 +42,9 @@
     <ClCompile Include="src\tinyply\tinyply.cpp">
       <Filter>Source Files\tinyply</Filter>
     </ClCompile>
+    <ClCompile Include="src\Huffman.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Decoder.h">
@@ -64,6 +67,9 @@
     </ClInclude>
     <ClInclude Include="src\tinyply\tinyply.h">
       <Filter>Source Files\tinyply</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Huffman.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
