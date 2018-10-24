@@ -243,7 +243,7 @@ bool Octree::addLeaf(const unsigned int maxDepth, const Index& index)
 
     // check if the parent exist 
     if (!nodeExist(maxDepth - 1, parent))
-        addNode(maxDepth - 1, parent, octreeChild);
+        addNodeRecursive(maxDepth - 1, parent, octreeChild);
     
     // Add this child into the the parent node
     addNodeChild(maxDepth - 1, parent, octreeChild);
@@ -264,7 +264,7 @@ bool Octree::nodeExist(const unsigned int level, const Index& index)
     return itr != currentLevel.end();
 }
 
-bool Octree::addNode(const unsigned int level, const Index& index, const unsigned int childIndex)
+bool Octree::addNodeRecursive(const unsigned int level, const Index& index, const unsigned int childIndex)
 {
     if ((size_t)level >= levels.size())
         return false;

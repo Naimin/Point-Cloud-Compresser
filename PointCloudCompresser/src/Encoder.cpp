@@ -58,7 +58,7 @@ void Encoder::DepthFirstTransversal(Octree & octree, EncodedData & data)
             {
                 Index childIndex(trans.index.index * 2);
                 // apply the child offset to 2 x Parent index
-                childIndex += octree.getChildOffset(childId);
+                childIndex.index += octree.getChildOffset(childId);
 
                 // only push node if there is actual child node
                 if (trans.level + 1 < data.maxDepth)

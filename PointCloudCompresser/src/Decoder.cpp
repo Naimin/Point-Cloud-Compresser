@@ -42,16 +42,16 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
         // process the child
 
         // Find the next child to process
-        unsigned char childId = 0;
-        Index childIndex(parent.index * 2);
-        for (; childId < 8; ++childId)
+        unsigned char childId = 7;
+        Index childIndex(parent.index.index * 2);
+        for (; childId >= 0; --childId)
         {
             // for each child id, check if they exist
             unsigned char childBit = 1 << childId;
-            unsigned char exist = encodedData[i] & childBit;
+            unsigned char exist = parent.node.children & childBit;
             if (exist)
             {
-                childIndex += octree.getChildOffset(childId);
+                childIndex.index += octree.getChildOffset(childId);
                 break;
             }
         }

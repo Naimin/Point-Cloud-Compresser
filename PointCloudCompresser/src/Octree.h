@@ -65,7 +65,7 @@ namespace CPC
             unsigned char computeOctreeChildIndex(const Index& index);
             bool addLeaf(const unsigned int maxDepth, const Index& index);
             bool nodeExist(const unsigned int level, const Index& index);
-            bool addNode(const unsigned int level, const Index& index, const unsigned int childIndex);
+            bool addNodeRecursive(const unsigned int level, const Index& index, const unsigned int childIndex);
             void addNodeChild(const unsigned int level, const Index& parentIndex, const unsigned int childIndex);
 
             // a vector to store each level
