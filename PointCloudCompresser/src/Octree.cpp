@@ -6,6 +6,7 @@ using namespace CPC;
 
 CPC::Octree::Octree(unsigned int maxDepth, BoundingBox& bbox_) : levels(maxDepth), levelMutexs(maxDepth), bbox(bbox_)
 {
+    leafCellSize = computeLeafCellSize(maxDepth, bbox);
 }
 
 Octree::Octree(unsigned int maxDepth, PointCloud& pointCloud) : levels(maxDepth), levelMutexs(maxDepth)
@@ -111,6 +112,47 @@ size_t Octree::getNumOfAllNodes() const
     }
 
     return numOfNodes;
+}
+
+Node& CPC::Octree::addNode(const unsigned int level, const Index & index, const unsigned char child)
+{
+    levels[level].insert(std::make_pair(index, Node(child)));
+    return levels[level][index];
+}
+
+Vector3ui CPC::Octree::getChildOffset(unsigned char childId) const
+{
+    // apply the child offset to 2 x Parent index
+    Vector3ui result(0,0,0);
+    unsigned char childBit = 1 << childId;
+    switch (childBit)
+    {
+    case 1:
+        break;
+    case 2:
+        result = Vector3ui(1, 0, 0);
+        break;
+    case 4:
+        result = Vector3ui(0, 1, 0);
+        break;
+    case 8:
+        result = Vector3ui(1, 1, 0);
+        break;
+    case 16:
+        result = Vector3ui(0, 0, 1);
+        break;
+    case 32:
+        result = Vector3ui(1, 0, 1);
+        break;
+    case 64:
+        result = Vector3ui(0, 1, 1);
+        break;
+    case 128:
+        result = Vector3ui(1, 1, 1);
+        break;
+    }
+
+    return result;
 }
 
 void Octree::generate(unsigned int maxDepth, PointCloud& pointCloud)
@@ -260,4 +302,10 @@ bool Node::addChild(unsigned char index)
     unsigned char childBit = 1 << index;
     children.fetch_or(childBit);
     return true;
+}
+
+void CPC::Node::removeChild(unsigned char index)
+{
+    unsigned char childBit = ~(1 << index);
+    children.fetch_and(childBit);
 }
