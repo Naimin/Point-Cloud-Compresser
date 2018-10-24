@@ -87,19 +87,21 @@ int main(int argc, char* argv[])
             output = inputPath.parent_path().append(inputPath.stem().concat(".cpc").string()).string();
 
         // load ply
+        std::cout << "Loading point cloud: " << inputPath.string() << std::endl;
         PointCloudIO io;
         auto pointCloud = io.loadPly(inputPath.string());
 
         // Generate Octree
+        std::cout << "Generating Bottom-Up Octree..." << std::endl;
         Octree octree(depth, pointCloud);
 
-        pointCloud = octree.generatePointCloud();
-
         // Encode
+        std::cout << "Encoding Octree..." << std::endl;
         Encoder encoder;
         auto encodedData = encoder.encode(octree);
 
         // write cpc
+        std::cout << "Compressing and saving to " << output << std::endl;
         io.saveCpc(output, encodedData);
     }
     // if input is cpc, do decoding
@@ -109,14 +111,17 @@ int main(int argc, char* argv[])
           output = inputPath.parent_path().append(inputPath.stem().concat("_decoded.ply").string()).string();
            
         // load cpc
+        std::cout << "Loading " << inputPath.string() << std::endl;
         PointCloudIO io;
         auto encodedData = io.loadCpc(inputPath.string());
 
         // decoded into octree
+        std::cout << "Decoding into Octree" << std::endl;
         Decoder decoder;
         auto octree = decoder.decode(encodedData);
 
         // write ply
+        std::cout << "Writing decode point cloud: " << output << std::endl;
         io.savePly(output, octree.generatePointCloud());
     }
     
