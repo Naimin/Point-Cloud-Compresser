@@ -103,21 +103,19 @@ bool CPC::Huffman::Huffman::decompress(const std::string& compressedFile, const 
 
     while (inFile >> nextByte) 
     {
-        for (int i = 0; i < 8; i++) 
+        for (int i = 0; i < 8; ++i) 
         {
-            if ((nextByte >> i) & 0x01)
-                code += '1';
-            else
-                code += '0';
-            for (int i = 0; i < 256; i++) 
+            code += ((nextByte >> i) & 0x01) ? '1' : '0';
+
+            for (int j = 0; j < 256; ++j) 
             {
-                if (codebook[i] == code) 
+                if (codebook[j] == code) 
                 {
-                    if (frequencies[i]) 
+                    if (frequencies[j]) 
                     {
-                        outFile << (unsigned char)i;
+                        outFile << (unsigned char)j;
                         code.clear();
-                        frequencies[i]--;
+                        --frequencies[j];
                         break;
                     }
                     else

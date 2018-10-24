@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
         auto octree = decoder.decode(encodedData);
 
         // write ply
-        std::cout << "Writing decode point cloud: " << output << std::endl;
+        std::cout << "Writing decoded point cloud: " << output << std::endl;
         io.savePly(output, octree.generatePointCloud());
     }
     
