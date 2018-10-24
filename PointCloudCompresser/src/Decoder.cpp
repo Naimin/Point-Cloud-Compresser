@@ -28,8 +28,8 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
     
     unsigned char currentLevel = 0;
     Index currentIndex(0, 0, 0);
-
-    Node& root = octree.addNode(currentLevel, currentIndex, encodedData[i]);
+    // create the root node
+    Node& root = octree.addNode(currentLevel, currentIndex, encodedData[0]);
     DecoderTransversalData trans(currentLevel, currentIndex, root);
     states.push(trans);
 
@@ -37,10 +37,6 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
     {
         // get the parent state
         auto& parent = states.top();
-
-        // if no more child, pop the parent
-        if (parent.node.children == 0)
-            states.pop();
         
         // process the child
 
@@ -51,7 +47,7 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
         {
             // for each child id, check if they exist
             unsigned char childBit = 1 << childId;
-            unsigned char exist = child & childBit;
+            unsigned char exist = encodedData[i] & childBit;
             if (exist)
             {
                 childIndex += octree.getChildOffset(childId);
@@ -59,7 +55,13 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
             }
         }
 
-        // if there is still more level to transverse
+        // Mark child as processed
+        parent.node.removeChild(childId);
+        // if no more child, pop the parent
+        if (parent.node.children == 0)
+            states.pop();
+
+        // if there is still more level to transverse, add the node
         if (currentLevel + 1 < data.maxDepth)
         {
             Node& node = octree.addNode(currentLevel + 1, childIndex, encodedData[i]);
@@ -68,8 +70,6 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
             // add parent state
             states.push(trans);
         }
-        
-
     }
 }
 
