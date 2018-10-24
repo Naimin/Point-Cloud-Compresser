@@ -1,5 +1,6 @@
 #include "Decoder.h"
 #include <stack>
+#include <iostream>
 
 using namespace CPC;
 
@@ -61,14 +62,21 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
         if (parent.node.children == 0)
             states.pop();
 
-        // if there is still more level to transverse, add the node
-        if (currentLevel + 1 < data.maxDepth)
+        // Create the node
+        if (parent.level + 1 < data.maxDepth)
         {
-            Node& node = octree.addNode(currentLevel + 1, childIndex, encodedData[i]);
-            DecoderTransversalData trans(currentLevel + 1, childIndex, node);
-
-            // add parent state
-            states.push(trans);
+            Node& node = octree.addNode(parent.level + 1, childIndex, encodedData[i]);
+            // if there is still more level to transverse, push the parent state
+            if (parent.level + 2 < data.maxDepth)
+            {
+                DecoderTransversalData trans(parent.level + 1, childIndex, node);
+                // add parent state
+                states.push(trans);
+            }
+        }
+        else
+        {
+            std::cout << "Shouldn't be here" << std::endl;
         }
     }
 }
