@@ -54,7 +54,7 @@ namespace CPC
             unsigned int getMaxDepth() const;
             size_t getNumOfAllNodes() const;
             Node& addNode(const unsigned int level, const Index& index, const unsigned char child);
-            Vector3ui getChildOffset(unsigned char childId) const;
+            static Vector3ui getChildOffset(unsigned char childId);
 
         protected:
             void generate(unsigned int maxDepth, PointCloud& pointCloud);

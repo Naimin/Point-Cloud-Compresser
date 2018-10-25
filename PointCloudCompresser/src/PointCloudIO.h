@@ -1,5 +1,5 @@
 #pragma once
-#include <tinyply.h>
+#include "tinyply/tinyply.h"
 #include "PointCloud.h"
 #include "Encoder.h"
 
