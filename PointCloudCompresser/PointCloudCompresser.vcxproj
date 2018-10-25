@@ -102,12 +102,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>D:\Master\PointCloudCompresser\PointCloudCompresser\src\tinyply;D:\Master\PointCloudCompresser\thirdparty\Eigen;D:\Master\PointCloudCompresser\thirdparty\tbb\include;D:\Master\PointCloudCompresser\thirdparty\boost_1_63_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\PointCloudCompresser\src\tinyply;$(SolutionDir)\thirdparty\Eigen;$(SolutionDir)\thirdparty\tbb\include;$(SolutionDir)\thirdparty\boost_1_63_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\Master\PointCloudCompresser\thirdparty\boost_1_63_0\lib64-msvc-14.0;D:\Master\PointCloudCompresser\thirdparty\tbb\lib\intel64\vc14;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\thirdparty\boost_1_63_0\lib64-msvc-14.0;$(SolutionDir)\thirdparty\tbb\lib\intel64\vc14;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "..\thirdparty\tbb\bin\intel64\vc14\tbb_debug.dll" "$(SolutionDir)$(Platform)\$(Configuration)\tbb_debug.dll"
@@ -140,14 +140,14 @@ copy /Y "..\thirdparty\boost_1_63_0\lib64-msvc-14.0\boost_filesystem-vc140-mt-gd
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>D:\Master\PointCloudCompresser\thirdparty\tinyply;D:\Master\PointCloudCompresser\thirdparty\Eigen;D:\Master\PointCloudCompresser\thirdparty\boost_1_63_0;D:\Master\PointCloudCompresser\thirdparty\tbb\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\thirdparty\tinyply;$(SolutionDir)\thirdparty\Eigen;$(SolutionDir)\thirdparty\boost_1_63_0;$(SolutionDir)\thirdparty\tbb\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\Master\PointCloudCompresser\thirdparty\boost_1_63_0\lib64-msvc-14.0;D:\Master\PointCloudCompresser\thirdparty\tbb\lib\intel64\vc14;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\thirdparty\boost_1_63_0\lib64-msvc-14.0;$(SolutionDir)\thirdparty\tbb\lib\intel64\vc14;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
