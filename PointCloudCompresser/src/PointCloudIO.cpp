@@ -185,7 +185,7 @@ EncodedData CPC::PointCloudIO::loadCpc(const std::string & inputPath)
     inFile.close();
 
     // delete the decompressed point cloud file
-    boost::filesystem::remove(decompressedFilePath);
+    //boost::filesystem::remove(decompressedFilePath);
 
     return data;
 }
@@ -225,7 +225,7 @@ bool CPC::PointCloudIO::saveCpc(const std::string & outputPath, EncodedData & en
     bool success = huffman.compress(decompressedFilePath.string(), outputPath);
 
     // delete the decompressed point cloud file
-    boost::filesystem::remove(decompressedFilePath);
+    //boost::filesystem::remove(decompressedFilePath);
 
     return success;
 }
