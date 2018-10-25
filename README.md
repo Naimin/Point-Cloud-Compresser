@@ -2,7 +2,9 @@
 Unstructured Point Cloud Compresser
 
 Description:
-This project seek to compress unstructured point cloud file to to provide a more lightweight transfer file while still retaining as much precision as possible.
+This project seek to compress unstructured point cloud file to provide a more lightweight transfer file while still retaining as much precision as possible.
+The entire point cloud is encoded into a Octree structure, where some amount of quantization do occur. The maximum quantization error is defined the max depth of the octree (specified by the --depth parameter).
+The encoded point cloud is then further compressed using Huffman encoding.
 
 Usage:
 -i / --input : The input file path (this can take in either a .ply or .cpc)
