@@ -40,8 +40,8 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
         auto& parent = states.top();
         
         // process the child
-
         // Find the next child to process
+        // Go backward since they are encode backward due to the depth-first transversal
         unsigned char childId = 7;
         Index childIndex(parent.index.index * 2);
         for (; childId >= 0; --childId)
