@@ -7,27 +7,10 @@
 
 #include "PointCloud.h"
 #include "BoundingBox.h"
+#include "Index.h"
 
 namespace CPC
 {
-    struct Index
-    {
-        Index(const Vector3ui& index_) : index(index_) {}
-        Index(const unsigned int x, const unsigned int y, const unsigned int z) : index(x, y, z) {}
-        bool operator < (const Index &b) const
-        {
-            if (index.x() != b.index.x()) {
-                return index.x() < b.index.x();
-            }
-            if (index.y() != b.index.y()) {
-                return index.y() < b.index.y();
-            }
-            return  index.z() < b.index.z();
-        }
-
-        Vector3ui index;
-    };
-
     struct Node
     {
         Node() { children = 0; }
