@@ -45,6 +45,9 @@
     <ClCompile Include="src\Huffman.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\MortonCode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Decoder.h">
@@ -69,6 +72,12 @@
       <Filter>Source Files\tinyply</Filter>
     </ClInclude>
     <ClInclude Include="src\Huffman.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MortonCode.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Index.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
