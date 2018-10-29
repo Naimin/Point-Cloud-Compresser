@@ -180,7 +180,7 @@ EncodedData CPC::PointCloudIO::loadCpc(const std::string & inputPath)
     readBinary(inFile, dataSize);
 
     // allocate the number of nodes
-    data.encodedData.resize(dataSize);
+    data.resize(dataSize);
     // read in the whole chunk of encoded data
     inFile.read((char*)data.encodedData.data(), dataSize * sizeof(unsigned char));
 

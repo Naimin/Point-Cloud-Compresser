@@ -37,6 +37,7 @@ namespace CPC
             unsigned int getMaxDepth() const;
             size_t getNumOfAllNodes() const;
             Node& addNode(const unsigned int level, const Index& index, const unsigned char child);
+            bool addNodeRecursive(const unsigned int level, const Index& index, const unsigned int childIndex);
             static Vector3ui getChildOffset(unsigned char childId);
 
         protected:
@@ -48,7 +49,7 @@ namespace CPC
             unsigned char computeOctreeChildIndex(const Index& index);
             bool addLeaf(const unsigned int maxDepth, const Index& index);
             bool nodeExist(const unsigned int level, const Index& index);
-            bool addNodeRecursive(const unsigned int level, const Index& index, const unsigned int childIndex);
+            
             void addNodeChild(const unsigned int level, const Index& parentIndex, const unsigned int childIndex);
 
             // a vector to store each level

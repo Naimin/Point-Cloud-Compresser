@@ -26,6 +26,23 @@ namespace CPC
             currentSize += sizeof(val);
         }
 
+        template <class T>
+        void read(T& val)
+        {
+            memcpy(&(val), &(encodedData[currentSize]), sizeof(val));
+            currentSize += sizeof(val);
+        }
+
+        unsigned char readNext()
+        {
+            return encodedData[currentSize++];
+        }
+
+        void resize(size_t size)
+        {
+            encodedData.resize(size);
+        }
+
         BoundingBox sceneBoundingBox;
         unsigned char maxDepth;
         unsigned char subOctreeDepth;

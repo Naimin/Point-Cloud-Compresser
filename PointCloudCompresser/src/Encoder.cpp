@@ -26,6 +26,7 @@ EncodedData Encoder::encode(Octree & octree)
     data.maxDepth = octree.getMaxDepth();
 
     auto& bestStats = computeBestSubOctreeLevel(octree);
+    data.subOctreeDepth = bestStats.level;
     DepthFirstTransversal(octree, bestStats, data);
 
     return data;
@@ -47,6 +48,8 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
         unsigned int mortonCode = MortonCode::Encode(itr.first);
         // Write the index address at the start of this sub-octree node.
         data.add(mortonCode);
+
+        std::cout << "Sub root: " << itr.first.index.x() << " , " << itr.first.index.y() << " , " << itr.first.index.z() << std::endl;
 
         TransversalData root(bestStats.level, itr.first, itr.second);
         stack.push(root);
