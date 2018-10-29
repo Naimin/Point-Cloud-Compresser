@@ -62,7 +62,14 @@ namespace CPC
     struct BestStats
     {
         BestStats() : size(ULLONG_MAX), level(0) {}
+        BestStats(size_t size_, unsigned level_) : size(size_), level(level_) {}
         BestStats(const BestStats& right) : size(right.size), level(right.level) {}
+        BestStats& operator=(const BestStats& right)
+        {
+            this->size = right.size;
+            this->level = right.level;
+            return *this;
+        }
 
         void checkAndUpdate(size_t size_, unsigned char level_)
         {
@@ -85,10 +92,11 @@ namespace CPC
             Encoder();
             virtual ~Encoder();
 
-            EncodedData encode(Octree& octree);
+            EncodedData encode(Octree& octree, unsigned char forceSubOctreeLevel = (unsigned char)-1);
 
         protected:
             void DepthFirstTransversal(Octree& octree, BestStats& bestStats, EncodedData& encodeData);
             BestStats computeBestSubOctreeLevel(Octree& octree);
+            size_t computeSubOctreeSize(Octree & octree, unsigned char level);
     };
 }

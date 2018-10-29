@@ -36,8 +36,10 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
         data.read(mortonCode);
         unsigned char rootChild = data.readNext();
         Index rootIndex = MortonCode::Decode(mortonCode);
-        std::cout << "Sub root: " << rootIndex.index.x() << " , " << rootIndex.index.y() << " , " << rootIndex.index.z() << std::endl;
-        
+        unsigned char* chars = (unsigned char*)&mortonCode;
+        std::cout << "Sub root: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << std::endl;
+        std::cout << (int)rootChild << std::endl;
+
         // Need to recursively add the sub-root back to the main root
         for (unsigned char childId = 0; childId < 8; ++childId)
         {
@@ -60,6 +62,12 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
             // get the parent state
             auto& parent = states.top();
 
+            if (parent.node.children == 0) // assertion
+            {
+                states.pop();
+                std::cout << "Shouldn't be here" << std::endl;
+                return;
+            }
             // process the child
             // Find the next child to process
             // Go backward since they are encode backward due to the depth-first transversal
@@ -87,6 +95,8 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
             if (parent.level + 1 < data.maxDepth)
             {
                 Node& node = octree.addNode(parent.level + 1, childIndex, data.readNext());
+                std::cout << (int)node.children << std::endl;
+
                 // if there is still more level to transverse, push the parent state
                 if (parent.level + 2 < data.maxDepth)
                 {
@@ -95,9 +105,10 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
                     states.push(trans);
                 }
             }
-            else if(!states.empty())
+            else if(!states.empty()) // assertion
             {
                 std::cout << "Shouldn't be here" << std::endl;
+                return;
             }
         }
         // remember to increament number of byte already read.

@@ -21,7 +21,7 @@ static void show_usage(std::string name)
         << std::endl;
 }
 
-int handleArgument(int argc, char* argv[], std::string& input, std::string& output, int& depth)
+int handleArgument(int argc, char* argv[], std::string& input, std::string& output, int& depth, int& forceDepth)
 {
     if (argc < 2) {
         show_usage(argv[0]);
@@ -61,6 +61,15 @@ int handleArgument(int argc, char* argv[], std::string& input, std::string& outp
                 return 1;
             }
         }
+        else if ((arg == "-f") || (arg == "--forceDepth")) {
+            if (i + 1 < argc) {
+                forceDepth = std::stoi(argv[++i]);
+            }
+            else {
+                std::cerr << "--forceDepth option requires one argument." << std::endl;
+                return 1;
+            }
+        }
     }
     return 0;
 }
@@ -69,9 +78,10 @@ int main(int argc, char* argv[])
 {
     std::string input, output;
     int depth = 16;
+    int forceDepth = -1;
 
     int failed = -1;
-    failed = handleArgument(argc, argv, input, output, depth);
+    failed = handleArgument(argc, argv, input, output, depth, forceDepth);
     if (failed)
     {
         return failed;
@@ -98,7 +108,7 @@ int main(int argc, char* argv[])
         // Encode
         std::cout << "Encoding Octree..." << std::endl;
         Encoder encoder;
-        auto encodedData = encoder.encode(octree);
+        auto encodedData = encoder.encode(octree, (unsigned char)forceDepth);
 
         // write cpc
         std::cout << "Compressing and saving to " << output << std::endl;

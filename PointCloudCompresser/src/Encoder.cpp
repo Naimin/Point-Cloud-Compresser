@@ -19,15 +19,18 @@ Encoder::~Encoder()
 {
 }
 
-EncodedData Encoder::encode(Octree & octree)
+EncodedData Encoder::encode(Octree & octree, unsigned char forceSubOctreeLevel)
 {
     EncodedData data;
     data.sceneBoundingBox = octree.getBoundingBox();
     data.maxDepth = octree.getMaxDepth();
 
-    auto& bestStats = computeBestSubOctreeLevel(octree);
-    data.subOctreeDepth = bestStats.level;
-    DepthFirstTransversal(octree, bestStats, data);
+    BestStats best;
+    // Compute the optimal sub octree depth if no force depth is specified.
+    best = (forceSubOctreeLevel != (unsigned char)-1) ? BestStats(computeSubOctreeSize(octree, forceSubOctreeLevel), forceSubOctreeLevel) : computeBestSubOctreeLevel(octree);
+    
+    data.subOctreeDepth = best.level;
+    DepthFirstTransversal(octree, best, data);
 
     return data;
 }
@@ -48,8 +51,10 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
         unsigned int mortonCode = MortonCode::Encode(itr.first);
         // Write the index address at the start of this sub-octree node.
         data.add(mortonCode);
+        unsigned char* chars = (unsigned char*)&mortonCode;
+        std::cout << "Sub root: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << std::endl;
 
-        std::cout << "Sub root: " << itr.first.index.x() << " , " << itr.first.index.y() << " , " << itr.first.index.z() << std::endl;
+        //std::cout << "Sub root: " << itr.first.index.x() << " , " << itr.first.index.y() << " , " << itr.first.index.z() << std::endl;
 
         TransversalData root(bestStats.level, itr.first, itr.second);
         stack.push(root);
@@ -62,6 +67,7 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
             // Write into the data when evaluating a new node.
             unsigned char child = trans.node.children;
             data.add(child);
+            std::cout << (int)child << std::endl;
 
             // iterate over the child and push them into the stack
             for (unsigned char childId = 0; childId < 8; ++childId)
@@ -96,14 +102,7 @@ BestStats CPC::Encoder::computeBestSubOctreeLevel(Octree & octree)
     //tbb::parallel_for((unsigned char)0, maxDepth, [&](unsigned char level)
     for(unsigned char level = 0; level < maxDepth; ++level)
     {
-        // Each sub octree root node need a address index (4 byte)
-        size_t totalSize = levels[level].size() * sizeof(unsigned int);
-        // Now compute the size of each of the children node using this sub octree level.
-        for (unsigned char i = level; i < (unsigned char)octree.getMaxDepth(); ++i)
-        {
-            totalSize += levels[i].size() * sizeof(unsigned char);
-        }
-        
+        size_t totalSize = computeSubOctreeSize(octree, level);
         std::cout << "Level: " << (int)level << " TotalSize: " << totalSize << std::endl;
 
         best.checkAndUpdate(totalSize, level);
@@ -111,4 +110,17 @@ BestStats CPC::Encoder::computeBestSubOctreeLevel(Octree & octree)
 
     std::cout << "Best Level: " << (int)best.level << " TotalSize: " << best.size << std::endl;
     return best;
+}
+
+size_t CPC::Encoder::computeSubOctreeSize(Octree& octree, unsigned char level)
+{
+    auto& levels = octree.getLevels();
+    // Each sub octree root node need a address index (4 byte)
+    size_t totalSize = levels[level].size() * sizeof(unsigned int);
+    // Now compute the size of each of the children node using this sub octree level.
+    for (unsigned char i = level; i < (unsigned char)octree.getMaxDepth(); ++i)
+    {
+        totalSize += levels[i].size() * sizeof(unsigned char);
+    }
+    return totalSize;
 }
