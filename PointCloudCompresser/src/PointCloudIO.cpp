@@ -173,14 +173,16 @@ EncodedData CPC::PointCloudIO::loadCpc(const std::string & inputPath)
     readBinary(inFile, data.sceneBoundingBox.max.z());
     // read in the max depth
     readBinary(inFile, data.maxDepth);
-    // read in the number of node
-    size_t numOfNode;
-    readBinary(inFile, numOfNode);
+    // read in the sub octree depth
+    readBinary(inFile, data.subOctreeDepth);
+    // read in the size of the encoded data
+    size_t dataSize;
+    readBinary(inFile, dataSize);
 
     // allocate the number of nodes
-    data.encodedData.resize(numOfNode);
+    data.encodedData.resize(dataSize);
     // read in the whole chunk of encoded data
-    inFile.read((char*)data.encodedData.data(), numOfNode * sizeof(unsigned char));
+    inFile.read((char*)data.encodedData.data(), dataSize * sizeof(unsigned char));
 
     inFile.close();
 
@@ -212,7 +214,9 @@ bool CPC::PointCloudIO::saveCpc(const std::string & outputPath, EncodedData & en
     writeBinary(outFile, encodedData.sceneBoundingBox.max.z());
     // write the max depth
     writeBinary(outFile, encodedData.maxDepth);
-    // write the number of node
+    // write the sub octree depth
+    writeBinary(outFile, encodedData.subOctreeDepth);
+    // write the size of the encoded data
     writeBinary(outFile, encodedData.encodedData.size());
     // Write the encoded data
     outFile.write((char*)encodedData.encodedData.data(), encodedData.encodedData.size() * sizeof(unsigned char));

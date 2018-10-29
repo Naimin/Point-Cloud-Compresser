@@ -27,6 +27,7 @@ namespace CPC
 
         BoundingBox sceneBoundingBox;
         unsigned char maxDepth;
+        unsigned char subOctreeDepth;
         std::vector<unsigned char> encodedData;
         size_t currentSize;
     };
