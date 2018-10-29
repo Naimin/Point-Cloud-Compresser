@@ -1,8 +1,8 @@
 #include "Encoder.h"
 #include <stack>
 #include <tbb/parallel_for.h>
-#include <tbb/atomic.h>
 #include <iostream>
+#include "MortonCode.h"
 
 using namespace CPC;
 
@@ -25,73 +25,67 @@ EncodedData Encoder::encode(Octree & octree)
     data.sceneBoundingBox = octree.getBoundingBox();
     data.maxDepth = octree.getMaxDepth();
 
-    DepthFirstTransversal(octree, data);
+    auto& bestStats = computeBestSubOctreeLevel(octree);
+    DepthFirstTransversal(octree, bestStats, data);
 
     return data;
 }
 
-void Encoder::DepthFirstTransversal(Octree & octree, EncodedData & data)
+void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, EncodedData & data)
 {
     // since we know exactly how many node there is to write, we just allocate them
-    data.encodedData.resize(octree.getNumOfAllNodes());
+    data.encodedData.resize(bestStats.size);
     auto& levels = octree.getLevels();
-    size_t counter = 0; // track how many node is written
 
     std::stack<TransversalData> stack;
     
-    TransversalData root(0, levels[0].begin()->first, levels[0].begin()->second);
-    stack.push(root);
-    
-    while (!stack.empty())
+    // Encode from the subOctreeLevel and truncate the upper levels
+    // For each node in the subOctreeLevel encode the index, then transverse the full sub-octree
+    for (auto& itr : levels[bestStats.level])
     {
-        TransversalData trans = stack.top();
-        stack.pop();
+        // compute the Morton Code address of sub-octree root
+        unsigned int mortonCode = MortonCode::Encode(itr->first);
+        // Write the index address at the start of this sub-octree node.
+        data.add(mortonCode);
 
-        // Write into the data when evaluating a new node.
-        unsigned char child = trans.node.children;
-        data.encodedData[counter++] = child;
+        TransversalData root(bestStats.level, itr->first, itr->second);
+        stack.push(root);
 
-        // iterate over the child and push them into the stack
-        for (unsigned char childId = 0; childId < 8; ++childId)
+        while (!stack.empty())
         {
-            // for each child id, check if they exist
-            unsigned char childBit = 1 << childId;
-            unsigned char exist = child & childBit;
-            if (exist)
-            {
-                Index childIndex(trans.index.index * 2);
-                // apply the child offset to 2 x Parent index
-                childIndex.index += octree.getChildOffset(childId);
+            TransversalData trans = stack.top();
+            stack.pop();
 
-                // only push node if there is actual child node
-                if (trans.level + 1 < data.maxDepth)
+            // Write into the data when evaluating a new node.
+            unsigned char child = trans.node.children;
+            data.add(child);
+
+            // iterate over the child and push them into the stack
+            for (unsigned char childId = 0; childId < 8; ++childId)
+            {
+                // for each child id, check if they exist
+                unsigned char childBit = 1 << childId;
+                unsigned char exist = child & childBit;
+                if (exist)
                 {
-                    TransversalData transChild(trans.level + 1, childIndex, levels[trans.level + 1][childIndex]);
-                    stack.push(transChild);
+                    Index childIndex(trans.index.index * 2);
+                    // apply the child offset to 2 x Parent index
+                    childIndex.index += octree.getChildOffset(childId);
+
+                    // only push node if there is actual child node
+                    if (trans.level + 1 < data.maxDepth)
+                    {
+                        TransversalData transChild(trans.level + 1, childIndex, levels[trans.level + 1][childIndex]);
+                        stack.push(transChild);
+                    }
                 }
             }
         }
     }
 }
 
-unsigned char CPC::Encoder::computeBestSubOctreeLevel(Octree & octree)
+BestStats CPC::Encoder::computeBestSubOctreeLevel(Octree & octree)
 { 
-    struct BestStats
-    {
-        void checkAndUpdate(size_t size, size_t level)
-        {
-            tbb::mutex::scoped_lock lock(mutex);
-            if (size < bestSize)
-            {
-                bestSize = size;
-                bestLevel = level;
-            }
-        }
-
-        size_t bestSize = std::numeric_limits<size_t>::max();
-        size_t bestLevel = 0; 
-        tbb::mutex mutex;
-    };
     BestStats best;
 
     auto& levels = octree.getLevels();
@@ -111,5 +105,6 @@ unsigned char CPC::Encoder::computeBestSubOctreeLevel(Octree & octree)
         best.checkAndUpdate(totalSize, level);
     });
 
-    return best.bestLevel;
+    std::cout << "Best Level: " << best.bestLevel << " TotalSize: " << best.bestSize << std::endl;
+    return best;
 }
