@@ -6,8 +6,8 @@ namespace CPC
     class MortonCode
     {
         public:
-            static unsigned int Encode(Index& index);
-            static Index Decode(unsigned int code);
+            static unsigned int Encode(const Index& index);
+            static Index Decode(const unsigned int code);
 
         protected:
             // helper function

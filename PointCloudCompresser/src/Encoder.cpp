@@ -44,11 +44,11 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
     for (auto& itr : levels[bestStats.level])
     {
         // compute the Morton Code address of sub-octree root
-        unsigned int mortonCode = MortonCode::Encode(itr->first);
+        unsigned int mortonCode = MortonCode::Encode(itr.first);
         // Write the index address at the start of this sub-octree node.
         data.add(mortonCode);
 
-        TransversalData root(bestStats.level, itr->first, itr->second);
+        TransversalData root(bestStats.level, itr.first, itr.second);
         stack.push(root);
 
         while (!stack.empty())
@@ -89,22 +89,23 @@ BestStats CPC::Encoder::computeBestSubOctreeLevel(Octree & octree)
     BestStats best;
 
     auto& levels = octree.getLevels();
-    size_t maxDepth = levels.size();
-    tbb::parallel_for((size_t)0, maxDepth, [&](size_t level)
+    unsigned char maxDepth = (unsigned char)levels.size();
+    //tbb::parallel_for((unsigned char)0, maxDepth, [&](unsigned char level)
+    for(unsigned char level = 0; level < maxDepth; ++level)
     {
         // Each sub octree root node need a address index (4 byte)
         size_t totalSize = levels[level].size() * sizeof(unsigned int);
         // Now compute the size of each of the children node using this sub octree level.
-        for (unsigned char i = level; i < octree.getMaxDepth(); ++i)
+        for (unsigned char i = level; i < (unsigned char)octree.getMaxDepth(); ++i)
         {
-            totalSize = levels[i].size() * sizeof(unsigned char);
+            totalSize += levels[i].size() * sizeof(unsigned char);
         }
         
-        std::cout << "Level: " << level << " TotalSize: " << totalSize << std::endl;
+        std::cout << "Level: " << (int)level << " TotalSize: " << totalSize << std::endl;
 
         best.checkAndUpdate(totalSize, level);
-    });
+    }//);
 
-    std::cout << "Best Level: " << best.bestLevel << " TotalSize: " << best.bestSize << std::endl;
+    std::cout << "Best Level: " << (int)best.level << " TotalSize: " << best.size << std::endl;
     return best;
 }

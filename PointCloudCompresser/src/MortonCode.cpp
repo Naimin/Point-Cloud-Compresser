@@ -2,12 +2,12 @@
 
 using namespace CPC;
 
-unsigned int CPC::MortonCode::Encode(Index & index)
+unsigned int CPC::MortonCode::Encode(const Index & index)
 {
     return (part1By2(index.index.z()) << 2) + (part1By2(index.index.y()) << 1) + part1By2(index.index.x());
 }
 
-Index CPC::MortonCode::Decode(unsigned int code)
+Index CPC::MortonCode::Decode(const unsigned int code)
 {
     return Index(compact1By2(code >> 0), compact1By2(code >> 1), compact1By2(code >> 2));
 }

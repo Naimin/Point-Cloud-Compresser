@@ -1,6 +1,7 @@
 #pragma once
 #include "Octree.h"
 #include <fstream>
+#include <limits>
 
 namespace CPC
 {
@@ -43,7 +44,10 @@ namespace CPC
 
     struct BestStats
     {
-        void checkAndUpdate(size_t size_, size_t level_)
+        BestStats() : size(ULLONG_MAX), level(0) {}
+        BestStats(const BestStats& right) : size(right.size), level(right.level) {}
+
+        void checkAndUpdate(size_t size_, unsigned char level_)
         {
             tbb::mutex::scoped_lock lock(mutex);
             if (size_ < size)
@@ -53,8 +57,8 @@ namespace CPC
             }
         }
 
-        size_t size = std::numeric_limits<size_t>::max();
-        size_t level = 0;
+        size_t size;
+        unsigned char level;
         tbb::mutex mutex;
     };
 
