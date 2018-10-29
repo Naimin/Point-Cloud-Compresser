@@ -34,5 +34,6 @@ namespace CPC
 
         protected:
             void DepthFirstTransversal(Octree& octree, EncodedData& encodeData);
+            unsigned char computeBestSubOctreeLevel(Octree& octree);
     };
 }

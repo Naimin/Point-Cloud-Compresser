@@ -1,5 +1,8 @@
 #include "Encoder.h"
 #include <stack>
+#include <tbb/parallel_for.h>
+#include <tbb/atomic.h>
+#include <iostream>
 
 using namespace CPC;
 
@@ -69,4 +72,44 @@ void Encoder::DepthFirstTransversal(Octree & octree, EncodedData & data)
             }
         }
     }
+}
+
+unsigned char CPC::Encoder::computeBestSubOctreeLevel(Octree & octree)
+{ 
+    struct BestStats
+    {
+        void checkAndUpdate(size_t size, size_t level)
+        {
+            tbb::mutex::scoped_lock lock(mutex);
+            if (size < bestSize)
+            {
+                bestSize = size;
+                bestLevel = level;
+            }
+        }
+
+        size_t bestSize = std::numeric_limits<size_t>::max();
+        size_t bestLevel = 0; 
+        tbb::mutex mutex;
+    };
+    BestStats best;
+
+    auto& levels = octree.getLevels();
+    size_t maxDepth = levels.size();
+    tbb::parallel_for((size_t)0, maxDepth, [&](size_t level)
+    {
+        // Each sub octree root node need a address index (4 byte)
+        size_t totalSize = levels[level].size() * sizeof(unsigned int);
+        // Now compute the size of each of the children node using this sub octree level.
+        for (unsigned char i = level; i < octree.getMaxDepth(); ++i)
+        {
+            totalSize = levels[i].size() * sizeof(unsigned char);
+        }
+        
+        std::cout << "Level: " << level << " TotalSize: " << totalSize << std::endl;
+
+        best.checkAndUpdate(totalSize, level);
+    });
+
+    return best.bestLevel;
 }
