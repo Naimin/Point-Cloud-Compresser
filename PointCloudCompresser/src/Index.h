@@ -5,21 +5,19 @@ namespace CPC
 {
     typedef Eigen::Matrix<unsigned int, 3, 1> Vector3ui;
 
-    struct Index
+    struct Index : public Vector3ui
     {
-        Index(const Vector3ui& index_) : index(index_) {}
-        Index(const unsigned int x, const unsigned int y, const unsigned int z) : index(x, y, z) {}
+        Index(const Vector3ui& index_) : Vector3ui(index_) {}
+        Index(const unsigned int x, const unsigned int y, const unsigned int z) : Vector3ui(x, y, z) {}
         bool operator < (const Index &b) const
         {
-            if (index.x() != b.index.x()) {
-                return index.x() < b.index.x();
+            if (x() != b.x()) {
+                return x() < b.x();
             }
-            if (index.y() != b.index.y()) {
-                return index.y() < b.index.y();
+            if (y() != b.y()) {
+                return y() < b.y();
             }
-            return  index.z() < b.index.z();
+            return  z() < b.z();
         }
-
-        Vector3ui index;
     };
 }

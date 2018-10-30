@@ -15,15 +15,21 @@ namespace CPC
 
         void add(unsigned char val)
         {
+            if (currentSize + 1 >= encodedData.size())
+                encodedData.resize(encodedData.size() * 2);
             encodedData[currentSize++] = val;
         }
         void add(char val)
         {
+            if (currentSize + 1 >= encodedData.size())
+                encodedData.resize(encodedData.size() * 2);
             encodedData[currentSize++] = val;
         }
         template <class T>
         void add(T val)
         {
+            if (currentSize + sizeof(val) >= encodedData.size())
+                encodedData.resize(encodedData.size() * 2);
             memcpy(&(encodedData[currentSize]), &val, sizeof(val));
             currentSize += sizeof(val);
         }
@@ -43,6 +49,15 @@ namespace CPC
         void resize(size_t size)
         {
             encodedData.resize(size);
+        }
+
+        void shrink()
+        {
+            if (encodedData.size() != currentSize)
+            {
+                encodedData.resize(currentSize);
+                encodedData.shrink_to_fit();
+            }
         }
 
         BoundingBox sceneBoundingBox;

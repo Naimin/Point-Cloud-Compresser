@@ -73,7 +73,7 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
             // Find the next child to process
             // Go backward since they are encode backward due to the depth-first transversal
             unsigned char childId = 7;
-            Index childIndex(parent.index.index * 2);
+            Index childIndex(parent.index * 2);
             for (; childId >= 0; --childId)
             {
                 // for each child id, check if they exist
@@ -81,7 +81,7 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
                 unsigned char exist = parent.node.children & childBit;
                 if (exist)
                 {
-                    childIndex.index += octree.getChildOffset(childId);
+                    childIndex += octree.getChildOffset(childId);
                     break;
                 }
             }

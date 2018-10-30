@@ -33,9 +33,9 @@ PointCloud Octree::generatePointCloud()
         unsigned char child = node.children.load();
         
         // leafCellSize * 2 since it is the parent node size.
-        float nodeX = bbox.min.x() + leafCellSize.x() * 2 * index.index.x();
-        float nodeY = bbox.min.y() + leafCellSize.y() * 2 * index.index.y();
-        float nodeZ = bbox.min.z() + leafCellSize.z() * 2 * index.index.z();
+        float nodeX = bbox.min.x() + leafCellSize.x() * 2 * index.x();
+        float nodeY = bbox.min.y() + leafCellSize.y() * 2 * index.y();
+        float nodeZ = bbox.min.z() + leafCellSize.z() * 2 * index.z();
         Vector3f nodePos(nodeX, nodeY, nodeZ);
         
         for (unsigned char childId = 0; childId < 8; ++childId)
@@ -178,7 +178,7 @@ Index Octree::computeLeafAddress(const BoundingBox& bbox, const Eigen::Vector3f&
 
 Index Octree::computeParentAddress(const Index& index)
 {
-    return Index(index.index.x() / 2, index.index.y() / 2, index.index.z() / 2);
+    return Index(index.x() / 2, index.y() / 2, index.z() / 2);
 }
 
 unsigned char Octree::computeOctreeChildIndex(const Index& index)
@@ -188,9 +188,9 @@ unsigned char Octree::computeOctreeChildIndex(const Index& index)
     //-----  -----
     //|2|3|  |6|7|
 
-    unsigned char xOffset = index.index.x() % 2;
-    unsigned char yOffset = index.index.y() % 2;
-    unsigned char zOffset = index.index.z() % 2;
+    unsigned char xOffset = index.x() % 2;
+    unsigned char yOffset = index.y() % 2;
+    unsigned char zOffset = index.z() % 2;
 
     unsigned char childIndex = 0;
     childIndex += xOffset;

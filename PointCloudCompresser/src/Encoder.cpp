@@ -6,6 +6,8 @@
 
 using namespace CPC;
 
+const int maxOffsetDist = 1024;
+
 bool EncodedData::isValid()
 {
     return !encodedData.empty();
@@ -43,12 +45,50 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
 
     std::stack<TransversalData> stack;
     
+    // only the first sub-root node is the full 64bit resolution address
+    // subsequent sub-root node is addressed using the 32bit offset index.
+    Index currentIndex = levels[bestStats.level].begin()->first;
+    auto mortonCode64 = MortonCode::encode64(currentIndex);
+    data.add(mortonCode64);
+#ifdef DEBUG_ENCODING
+    unsigned char* chars = (unsigned char*)&mortonCode64;
+    std::cout << "Sub root: ";
+    for (int i = 0; i < sizeof(unsigned long long); ++i)
+    {
+        std::cout << (int)chars[1] << " , ";
+    }
+    std::cout << std::endl;
+#endif
+
     // Encode from the subOctreeLevel and truncate the upper levels
     // For each node in the subOctreeLevel encode the index, then transverse the full sub-octree
     for (auto& itr : levels[bestStats.level])
     {
-        // compute the Morton Code address of sub-octree root
-        auto mortonCode = MortonCode::encode64(itr.first);
+        // compute the index offset from previous sub-node
+        Index offsetIndex(itr.first - currentIndex);
+
+        // must make sure the offset is covering a distance within 2^10 (1024) of the 32bit morton code
+        // Else we must create a empty sub-octree root node to skip towards the actual index
+        while (offsetIndex.x() >= maxOffsetDist || offsetIndex.y() >= maxOffsetDist || offsetIndex.z() >= maxOffsetDist)
+        {
+            offsetIndex = Index(itr.first - currentIndex);
+
+            // update currentIndex to the currently processed sub-octree node
+            currentIndex = itr.first;
+
+
+            // compute the Morton Code of sub-octree offset
+            auto mortonCode = MortonCode::encode32(offsetIndex);
+            // Write the index address at the start of this sub-octree node.
+            data.add(mortonCode); // write the offset of to the sub-root
+            data.add((unsigned char)0); // give the empty sub-root a null child
+        }
+
+        // update currentIndex to the currently processed sub-octree node
+        currentIndex = itr.first;
+
+        // compute the Morton Code of sub-octree offset
+        auto mortonCode = MortonCode::encode32(offsetIndex);
         // Write the index address at the start of this sub-octree node.
         data.add(mortonCode);
 #ifdef DEBUG_ENCODING
@@ -78,9 +118,9 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
                 unsigned char exist = child & childBit;
                 if (exist)
                 {
-                    Index childIndex(trans.index.index * 2);
+                    Index childIndex(trans.index * 2);
                     // apply the child offset to 2 x Parent index
-                    childIndex.index += octree.getChildOffset(childId);
+                    childIndex += octree.getChildOffset(childId);
 
                     // only push node if there is actual child node
                     if (trans.level + 1 < data.maxDepth)
@@ -92,6 +132,8 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
             }
         }
     }
+
+    data.shrink();
 }
 
 BestStats CPC::Encoder::computeBestSubOctreeLevel(Octree & octree)

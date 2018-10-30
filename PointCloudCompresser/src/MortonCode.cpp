@@ -5,12 +5,12 @@ using namespace CPC;
 
 unsigned int CPC::MortonCode::encode32(const Index & index)
 {
-    return libmorton::morton3D_32_encode(index.index.x(), index.index.y(), index.index.z());
+    return libmorton::morton3D_32_encode(index.x(), index.y(), index.z());
 }
 
 unsigned long long CPC::MortonCode::encode64(const Index & index)
 {
-    return libmorton::morton3D_64_encode(index.index.x(), index.index.y(), index.index.z());
+    return libmorton::morton3D_64_encode(index.x(), index.y(), index.z());
 }
 
 Index CPC::MortonCode::decode32(const unsigned int code)
