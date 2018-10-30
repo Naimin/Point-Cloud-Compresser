@@ -1,33 +1,28 @@
 #include "MortonCode.h"
+#include "libmorton/morton.h"
 
 using namespace CPC;
 
-unsigned int CPC::MortonCode::Encode(const Index & index)
+unsigned int CPC::MortonCode::encode32(const Index & index)
 {
-    return (part1By2(index.index.z()) << 2) + (part1By2(index.index.y()) << 1) + part1By2(index.index.x());
+    return libmorton::morton3D_32_encode(index.index.x(), index.index.y(), index.index.z());
 }
 
-Index CPC::MortonCode::Decode(const unsigned int code)
+unsigned int CPC::MortonCode::encode64(const Index & index)
 {
-    return Index(compact1By2(code >> 0), compact1By2(code >> 1), compact1By2(code >> 2));
+    return libmorton::morton3D_64_encode(index.index.x(), index.index.y(), index.index.z());
 }
 
-unsigned int CPC::MortonCode::part1By2(unsigned int val)
+Index CPC::MortonCode::decode32(const unsigned int code)
 {
-    val &= 0x000003ff;                      // val = ---- ---- ---- ---- ---- --98 7654 3210
-    val = (val ^ (val << 16)) & 0xff0000ff; // val = ---- --98 ---- ---- ---- ---- 7654 3210
-    val = (val ^ (val << 8))  & 0x0300f00f; // val = ---- --98 ---- ---- 7654 ---- ---- 3210
-    val = (val ^ (val << 4))  & 0x030c30c3; // val = ---- --98 ---- 76-- --54 ---- 32-- --10
-    val = (val ^ (val << 2))  & 0x09249249; // val = ---- 9--8 --7- -6-- 5--4 --3- -2-- 1--0
-    return val;
+    unsigned int x, y, z;
+    libmorton::morton3D_32_decode(code, x, y, z);
+    return Index(x,y,z);
 }
 
-unsigned int CPC::MortonCode::compact1By2(unsigned int val)
+Index CPC::MortonCode::decode64(const unsigned long long code)
 {
-    val &= 0x09249249;                      // val = ---- 9--8 --7- -6-- 5--4 --3- -2-- 1--0
-    val = (val ^ (val >> 2))  & 0x030c30c3; // val = ---- --98 ---- 76-- --54 ---- 32-- --10
-    val = (val ^ (val >> 4))  & 0x0300f00f; // val = ---- --98 ---- ---- 7654 ---- ---- 3210
-    val = (val ^ (val >> 8))  & 0xff0000ff; // val = ---- --98 ---- ---- ---- ---- 7654 3210
-    val = (val ^ (val >> 16)) & 0x000003ff; // val = ---- ---- ---- ---- ---- --98 7654 3210
-    return val;
+    unsigned int x, y, z;
+    libmorton::morton3D_64_decode(code, x, y, z);
+    return Index(x, y, z);
 }

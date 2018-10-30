@@ -1,17 +1,15 @@
 #pragma once
 #include "Index.h"
+#include <stdint.h>
 
 namespace CPC
 {
     class MortonCode
     {
         public:
-            static unsigned int Encode(const Index& index);
-            static Index Decode(const unsigned int code);
-
-        protected:
-            // helper function
-            static unsigned int part1By2(unsigned int val);
-            static unsigned int compact1By2(unsigned int val);
+            static unsigned int encode32(const Index & index);
+            static unsigned int encode64(const Index & index);
+            static Index decode32(const unsigned int code);
+            static Index decode64(const unsigned long long code);    
     };
 }
