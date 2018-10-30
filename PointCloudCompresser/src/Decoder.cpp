@@ -32,14 +32,15 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
     {
         // Each sub-root node need to be process
         unsigned char currentLevel = data.subOctreeDepth;
-        unsigned int mortonCode;
+        unsigned long long mortonCode;
         data.read(mortonCode);
         unsigned char rootChild = data.readNext();
         Index rootIndex = MortonCode::decode64(mortonCode);
+#ifdef DEBUG_ENCODING
         unsigned char* chars = (unsigned char*)&mortonCode;
         std::cout << "Sub root: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << std::endl;
         std::cout << (int)rootChild << std::endl;
-
+#endif
         // Need to recursively add the sub-root back to the main root
         for (unsigned char childId = 0; childId < 8; ++childId)
         {
@@ -95,7 +96,9 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
             if (parent.level + 1 < data.maxDepth)
             {
                 Node& node = octree.addNode(parent.level + 1, childIndex, data.readNext());
+#ifdef DEBUG_ENCODING
                 std::cout << (int)node.children << std::endl;
+#endif
 
                 // if there is still more level to transverse, push the parent state
                 if (parent.level + 2 < data.maxDepth)

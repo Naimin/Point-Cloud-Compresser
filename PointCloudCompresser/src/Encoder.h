@@ -3,6 +3,8 @@
 #include <fstream>
 #include <limits>
 
+#define DEBUG_ENCODING
+
 namespace CPC
 {
     // Data the help store and write the encoded data

@@ -48,13 +48,13 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
     for (auto& itr : levels[bestStats.level])
     {
         // compute the Morton Code address of sub-octree root
-        unsigned int mortonCode = MortonCode::encode64(itr.first);
+        auto mortonCode = MortonCode::encode64(itr.first);
         // Write the index address at the start of this sub-octree node.
         data.add(mortonCode);
+#ifdef DEBUG_ENCODING
         unsigned char* chars = (unsigned char*)&mortonCode;
         std::cout << "Sub root: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << std::endl;
-
-        //std::cout << "Sub root: " << itr.first.index.x() << " , " << itr.first.index.y() << " , " << itr.first.index.z() << std::endl;
+#endif
 
         TransversalData root(bestStats.level, itr.first, itr.second);
         stack.push(root);
@@ -67,8 +67,9 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
             // Write into the data when evaluating a new node.
             unsigned char child = trans.node.children;
             data.add(child);
+#ifdef DEBUG_ENCODING
             std::cout << (int)child << std::endl;
-
+#endif
             // iterate over the child and push them into the stack
             for (unsigned char childId = 0; childId < 8; ++childId)
             {
