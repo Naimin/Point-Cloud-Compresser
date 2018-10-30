@@ -3,7 +3,7 @@
 #include <fstream>
 #include <limits>
 
-#define DEBUG_ENCODING
+//#define DEBUG_ENCODING
 
 namespace CPC
 {

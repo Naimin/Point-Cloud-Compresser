@@ -94,8 +94,6 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
             }
         }
     }
-
-    data.shrink();
 }
 
 BestStats CPC::Encoder::computeBestSubOctreeLevel(Octree & octree)
