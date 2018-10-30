@@ -35,7 +35,7 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
         unsigned int mortonCode;
         data.read(mortonCode);
         unsigned char rootChild = data.readNext();
-        Index rootIndex = MortonCode::Decode(mortonCode);
+        Index rootIndex = MortonCode::decode64(mortonCode);
         unsigned char* chars = (unsigned char*)&mortonCode;
         std::cout << "Sub root: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << std::endl;
         std::cout << (int)rootChild << std::endl;

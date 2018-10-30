@@ -173,6 +173,14 @@ copy /Y "..\thirdparty\boost_1_63_0\lib64-msvc-14.0\boost_filesystem-vc140-mt-1_
     <ClInclude Include="src\Encoder.h" />
     <ClInclude Include="src\Huffman.h" />
     <ClInclude Include="src\Index.h" />
+    <ClInclude Include="src\libmorton\morton.h" />
+    <ClInclude Include="src\libmorton\morton2D.h" />
+    <ClInclude Include="src\libmorton\morton2D_LUTs.h" />
+    <ClInclude Include="src\libmorton\morton3D.h" />
+    <ClInclude Include="src\libmorton\morton3D_LUTs.h" />
+    <ClInclude Include="src\libmorton\morton_BMI.h" />
+    <ClInclude Include="src\libmorton\morton_common.h" />
+    <ClInclude Include="src\libmorton\morton_LUT_generators.h" />
     <ClInclude Include="src\MortonCode.h" />
     <ClInclude Include="src\Octree.h" />
     <ClInclude Include="src\PointCloud.h" />

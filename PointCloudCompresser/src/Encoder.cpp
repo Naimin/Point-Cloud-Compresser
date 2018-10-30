@@ -48,7 +48,7 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
     for (auto& itr : levels[bestStats.level])
     {
         // compute the Morton Code address of sub-octree root
-        unsigned int mortonCode = MortonCode::Encode(itr.first);
+        unsigned int mortonCode = MortonCode::encode64(itr.first);
         // Write the index address at the start of this sub-octree node.
         data.add(mortonCode);
         unsigned char* chars = (unsigned char*)&mortonCode;

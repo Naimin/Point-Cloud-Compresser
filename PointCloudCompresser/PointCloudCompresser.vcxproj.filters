@@ -16,6 +16,9 @@
     <Filter Include="Source Files\tinyply">
       <UniqueIdentifier>{9caad96e-2500-486f-a572-ff25a2173f5c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\libMorton">
+      <UniqueIdentifier>{af330aa0-59b5-438e-b6fe-e50528d1d5ad}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Decoder.cpp">
@@ -79,6 +82,30 @@
     </ClInclude>
     <ClInclude Include="src\Index.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libmorton\morton.h">
+      <Filter>Source Files\libMorton</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libmorton\morton_BMI.h">
+      <Filter>Source Files\libMorton</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libmorton\morton_common.h">
+      <Filter>Source Files\libMorton</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libmorton\morton_LUT_generators.h">
+      <Filter>Source Files\libMorton</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libmorton\morton2D.h">
+      <Filter>Source Files\libMorton</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libmorton\morton2D_LUTs.h">
+      <Filter>Source Files\libMorton</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libmorton\morton3D.h">
+      <Filter>Source Files\libMorton</Filter>
+    </ClInclude>
+    <ClInclude Include="src\libmorton\morton3D_LUTs.h">
+      <Filter>Source Files\libMorton</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
