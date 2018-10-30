@@ -115,8 +115,8 @@ BestStats CPC::Encoder::computeBestSubOctreeLevel(Octree & octree)
 size_t CPC::Encoder::computeSubOctreeSize(Octree& octree, unsigned char level)
 {
     auto& levels = octree.getLevels();
-    // Each sub octree root node need a address index (4 byte)
-    size_t totalSize = levels[level].size() * sizeof(unsigned int);
+    // Each sub octree root node need a address index (8 byte)
+    size_t totalSize = levels[level].size() * sizeof(unsigned long long);
     // Now compute the size of each of the children node using this sub octree level.
     for (unsigned char i = level; i < (unsigned char)octree.getMaxDepth(); ++i)
     {
