@@ -7,6 +7,10 @@
 
 namespace CPC
 {
+    typedef unsigned long long FullAddress;
+    typedef unsigned int OffsetAddress; // remember to update the MAX_OFFSET value
+    const OffsetAddress MAX_OFFSET = 1024;
+
     // Data the help store and write the encoded data
     struct EncodedData
     {
@@ -117,13 +121,11 @@ namespace CPC
 
             EncodedData encode(Octree& octree, unsigned char forceSubOctreeLevel = (unsigned char)-1);
 
-            static const unsigned char MAX_OFFSET = 4;
-
         protected:
             void DepthFirstTransversal(Octree& octree, BestStats& bestStats, EncodedData& encodeData);
             BestStats computeBestSubOctreeLevel(Octree& octree);
             size_t computeSubOctreeSize(Octree & octree, unsigned char level);
-            unsigned long long getEncodedFullAddress(const Index& index);
-            unsigned char getEncodedOffsetAddress(const Index& index);
+            FullAddress getEncodedFullAddress(const Index& index);
+            OffsetAddress getEncodedOffsetAddress(const Index& index);
     };
 }

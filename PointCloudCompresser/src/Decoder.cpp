@@ -37,7 +37,7 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
         
         if (data.checkFullAddressFlag())
         {
-            unsigned long long mortonCode;
+            FullAddress mortonCode;
             data.read(mortonCode);
             currentIndex = MortonCode::decode64(mortonCode);
 #ifdef DEBUG_ENCODING
@@ -47,9 +47,9 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
         }
         else
         {
-            unsigned char mortonCode;
+            OffsetAddress mortonCode;
             data.read(mortonCode);
-            currentIndex += MortonCode::decode8(mortonCode);
+            currentIndex += MortonCode::decode32(mortonCode);
 #ifdef DEBUG_ENCODING
             std::cout << "Sub root Offset: " << (int)mortonCode << std::endl;
 #endif

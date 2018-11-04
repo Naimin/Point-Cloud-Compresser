@@ -6,8 +6,6 @@
 
 using namespace CPC;
 
-const int maxOffsetDist = 1024;
-
 bool EncodedData::isValid()
 {
     return !encodedData.empty();
@@ -56,10 +54,9 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
         if (offset.x() < 0 || offset.x() > MAX_OFFSET || offset.y() < 0 || offset.y() > MAX_OFFSET || offset.z() < 0 || offset.z() > MAX_OFFSET)
         {
             // compute the Morton Code of sub-octree offset
-            auto mortonCode = getEncodedFullAddress(itr.first); // set the left most bit, to signal full address
+            FullAddress mortonCode = getEncodedFullAddress(itr.first); // set the left most bit, to signal full address
             // Write the offset index address at the start of this sub-octree node.
             data.add(mortonCode);
-            currentIndex = itr.first;
 #ifdef DEBUG_ENCODING
             unsigned char* chars = (unsigned char*)&mortonCode;
             std::cout << "Sub root: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << " , "
@@ -69,13 +66,14 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
         else
         {
             Index unsignedOffset((unsigned int)offset.x(), (unsigned int)offset.y(), (unsigned int)offset.z());
-            auto mortonCode = getEncodedOffsetAddress(unsignedOffset);
+            OffsetAddress mortonCode = getEncodedOffsetAddress(unsignedOffset);
             data.add(mortonCode);
-            currentIndex += unsignedOffset;
 #ifdef DEBUG_ENCODING
             std::cout << "Sub root Offset: " << (int)mortonCode << std::endl;
 #endif
         }
+        // update the currentIndex
+        currentIndex = itr.first;
         
         TransversalData root(bestStats.level, itr.first, itr.second);
         stack.push(root);
@@ -145,9 +143,10 @@ size_t CPC::Encoder::computeSubOctreeSize(Octree& octree, unsigned char level)
     {
         auto offset((currentIndex - itr.first).eval());
         if (offset.x() < 0 || offset.x() > MAX_OFFSET || offset.y() < 0 || offset.y() > MAX_OFFSET || offset.z() < 0 || offset.z() > MAX_OFFSET)
-            totalSize += sizeof(unsigned long long);
+            totalSize += sizeof(FullAddress);
         else
-            totalSize += sizeof(unsigned char);
+            totalSize += sizeof(OffsetAddress);
+        currentIndex = itr.first;
     }
 
     // Each sub octree root node need a address index (8 byte)
@@ -159,12 +158,12 @@ size_t CPC::Encoder::computeSubOctreeSize(Octree& octree, unsigned char level)
     return totalSize;
 }
 
-unsigned long long CPC::Encoder::getEncodedFullAddress(const Index & index)
+FullAddress CPC::Encoder::getEncodedFullAddress(const Index & index)
 {
     return MortonCode::encode64(index) | 0x8000000000000000; // compute morton code then add a full address flag on left-most bit
 }
 
-unsigned char CPC::Encoder::getEncodedOffsetAddress(const Index & index)
+OffsetAddress CPC::Encoder::getEncodedOffsetAddress(const Index & index)
 {
-    return MortonCode::encode8(index) & 0x7f; // compute morton code then unset the full address flag (left-most bit).
+    return MortonCode::encode32(index) & 0x7fffffff; // compute morton code then unset the full address flag (left-most bit).
 }
