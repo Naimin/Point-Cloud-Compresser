@@ -132,7 +132,9 @@ int main(int argc, char* argv[])
 
         // write ply
         std::cout << "Writing decoded point cloud: " << output << std::endl;
-        io.savePly(output, octree.generatePointCloud());
+        auto& pointCloud = octree.generatePointCloud();
+        std::cout << "Num of Points: " << pointCloud.positions.size() << std::endl;
+        io.savePly(output, pointCloud);
     }
     
     return 0;
