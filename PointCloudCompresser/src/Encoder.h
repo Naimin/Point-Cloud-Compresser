@@ -115,5 +115,7 @@ namespace CPC
             void DepthFirstTransversal(Octree& octree, BestStats& bestStats, EncodedData& encodeData);
             BestStats computeBestSubOctreeLevel(Octree& octree);
             size_t computeSubOctreeSize(Octree & octree, unsigned char level);
+            unsigned long long getEncodedFullAddress(const Index& index);
+            unsigned char getEncodedOffsetAddress(const Index& index);
     };
 }

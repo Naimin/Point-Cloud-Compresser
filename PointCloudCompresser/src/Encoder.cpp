@@ -50,7 +50,7 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
     for (auto& itr : levels[bestStats.level])
     {
         // compute the Morton Code of sub-octree offset
-        auto mortonCode = MortonCode::encode64(itr.first);
+        auto mortonCode = getEncodedFullAddress(itr.first); // set the left most bit, to signal full address
         // Write the offset index address at the start of this sub-octree node.
         data.add(mortonCode);
 #ifdef DEBUG_ENCODING
@@ -126,4 +126,14 @@ size_t CPC::Encoder::computeSubOctreeSize(Octree& octree, unsigned char level)
         totalSize += levels[i].size() * sizeof(unsigned char);
     }
     return totalSize;
+}
+
+unsigned long long CPC::Encoder::getEncodedFullAddress(const Index & index)
+{
+    return MortonCode::encode64(index) | 0x8000000000000000; // compute morton code then add a full address flag on left-most bit
+}
+
+unsigned char CPC::Encoder::getEncodedOffsetAddress(const Index & index)
+{
+    return MortonCode::encode8(index) & 0x7f; // compute morton code then unset the full address flag (left-most bit).
 }
