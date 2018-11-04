@@ -111,7 +111,9 @@
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "..\thirdparty\tbb\bin\intel64\vc14\tbb_debug.dll" "$(SolutionDir)$(Platform)\$(Configuration)\tbb_debug.dll"
-copy /Y "..\thirdparty\boost_1_63_0\lib64-msvc-14.0\boost_filesystem-vc140-mt-gd-1_63.dll" "$(SolutionDir)$(Platform)\$(Configuration)\boost_filesystem-vc140-mt-gd-1_63.dll"</Command>
+copy /Y "..\thirdparty\boost_1_63_0\lib64-msvc-14.0\boost_filesystem-vc140-mt-gd-1_63.dll" "$(SolutionDir)$(Platform)\$(Configuration)\boost_filesystem-vc140-mt-gd-1_63.dll"
+copy /Y "..\thirdparty\7-Zip\7z.dll" "$(SolutionDir)$(Platform)\$(Configuration)\7z.dll"
+copy /Y "..\thirdparty\7-Zip\7z.exe" "$(SolutionDir)$(Platform)\$(Configuration)\7z.exe"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -152,7 +154,9 @@ copy /Y "..\thirdparty\boost_1_63_0\lib64-msvc-14.0\boost_filesystem-vc140-mt-gd
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "..\thirdparty\tbb\bin\intel64\vc14\tbb.dll" "$(SolutionDir)$(Platform)\$(Configuration)\tbb.dll"
-copy /Y "..\thirdparty\boost_1_63_0\lib64-msvc-14.0\boost_filesystem-vc140-mt-1_63.dll" "$(SolutionDir)$(Platform)\$(Configuration)\boost_filesystem-vc140-mt-1_63.dll"</Command>
+copy /Y "..\thirdparty\boost_1_63_0\lib64-msvc-14.0\boost_filesystem-vc140-mt-1_63.dll" "$(SolutionDir)$(Platform)\$(Configuration)\boost_filesystem-vc140-mt-1_63.dll"
+copy /Y "..\thirdparty\7-Zip\7z.dll" "$(SolutionDir)$(Platform)\$(Configuration)\7z.dll"
+copy /Y "..\thirdparty\7-Zip\7z.exe" "$(SolutionDir)$(Platform)\$(Configuration)\7z.exe"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

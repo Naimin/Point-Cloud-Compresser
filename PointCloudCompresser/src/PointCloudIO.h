@@ -17,6 +17,9 @@ namespace CPC
             EncodedData loadCpc(const std::string& path);
             bool saveCpc(const std::string& path, EncodedData& encodedData);
 
+            bool zipCompress(const std::string& input, const std::string& output);
+            bool zipDecompress(const std::string& input, const std::string& output);
+
         protected:
             template<class T>
             void writeBinary(std::ofstream& fstream, T val)

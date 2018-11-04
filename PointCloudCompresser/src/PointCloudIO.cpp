@@ -4,6 +4,7 @@
 #include <chrono>
 #include <boost/filesystem.hpp>
 #include <Boost/filesystem/path.hpp>
+#include <sstream>
 #include "Huffman.h"
 
 #define TINYPLY_IMPLEMENTATION
@@ -155,8 +156,9 @@ EncodedData CPC::PointCloudIO::loadCpc(const std::string & inputPath)
     boost::filesystem::path decompressedFilePath(inputPath);
     decompressedFilePath = decompressedFilePath.replace_extension(".dpc"); 
     std::cout << "Decompressing " << inputPath << std::endl;
-    Huffman::Huffman huffman;
-    huffman.decompress(inputPath, decompressedFilePath.string());
+    //Huffman::Huffman huffman;
+    //huffman.decompress(inputPath, decompressedFilePath.string());
+    bool success = zipDecompress(inputPath, decompressedFilePath.string());
 
     EncodedData data;
 
@@ -225,11 +227,28 @@ bool CPC::PointCloudIO::saveCpc(const std::string & outputPath, EncodedData & en
 
     // Compress using the huffman encoding
     std::cout << "Compressing " << outputPath << std::endl;
-    Huffman::Huffman huffman;
-    bool success = huffman.compress(decompressedFilePath.string(), outputPath);
+    //Huffman::Huffman huffman;
+    //bool success = huffman.compress(decompressedFilePath.string(), outputPath);
+    bool success = zipCompress(decompressedFilePath.string(), outputPath);
 
     // delete the decompressed point cloud file
     //boost::filesystem::remove(decompressedFilePath);
 
     return success;
+}
+
+bool CPC::PointCloudIO::zipCompress(const std::string & input, const std::string & output)
+{
+    std::stringstream command;
+    command << "7z.exe a " << output << ' ' << input;
+    std::cout << command.str() << std::endl;
+    int error = system(command.str().c_str());
+    return error;
+}
+
+bool CPC::PointCloudIO::zipDecompress(const std::string & input, const std::string & output)
+{
+    std::stringstream command;
+    command << "7z.exe e " << output << ' ' << input << " -y";
+    return system(command.str().c_str());
 }
