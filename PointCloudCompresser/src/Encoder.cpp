@@ -28,7 +28,8 @@ EncodedData Encoder::encode(Octree & octree, unsigned char forceSubOctreeLevel)
     BestStats best;
     // Compute the optimal sub octree depth if no force depth is specified.
     best = (forceSubOctreeLevel != (unsigned char)-1) ? BestStats(computeSubOctreeSize(octree, forceSubOctreeLevel), forceSubOctreeLevel) : computeBestSubOctreeLevel(octree);
-    
+    std::cout << ((forceSubOctreeLevel != (unsigned char)-1) ? "Forced " : "") << "Using Level: " << (int)best.level << " TotalSize: " << best.size << std::endl;
+
     data.subOctreeDepth = best.level;
     DepthFirstTransversal(octree, best, data);
 
@@ -49,9 +50,11 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
     for (auto& itr : levels[bestStats.level])
     {
         Eigen::Vector3i offset((itr.first.cast<int>() - currentIndex.cast<int>()));
+#ifdef DEBUG_ENCODING
         std::cout << "offset: " << offset.x() << " , " << offset.y() << " , " << offset.z() << std::endl;
+#endif
         // if the new offset is beyond the MAX_OFFSET distance, use full address instead of offset
-        if (offset.x() < 0 || offset.x() > MAX_OFFSET || offset.y() < 0 || offset.y() > MAX_OFFSET || offset.z() < 0 || offset.z() > MAX_OFFSET)
+        if (offset.x() < -MAX_OFFSET || offset.x() > MAX_OFFSET || offset.y() < -MAX_OFFSET || offset.y() > MAX_OFFSET || offset.z() < -MAX_OFFSET || offset.z() > MAX_OFFSET)
         {
             // compute the Morton Code of sub-octree offset
             FullAddress mortonCode = getEncodedFullAddress(itr.first); // set the left most bit, to signal full address
@@ -69,11 +72,16 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
             OffsetAddress mortonCode = getEncodedOffsetAddress(unsignedOffset);
             data.add(mortonCode);
 #ifdef DEBUG_ENCODING
-            std::cout << "Sub root Offset: " << (int)mortonCode << std::endl;
+            unsigned char* chars = (unsigned char*)&mortonCode;
+            std::cout << "Sub root Offset: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << std::endl;
 #endif
         }
         // update the currentIndex
         currentIndex = itr.first;
+#ifdef DEBUG_ENCODING
+        unsigned char* chars = (unsigned char*)&mortonCode;
+        std::cout << "Current Sub root: " << (int)currentIndex.x() << " , " << (int)currentIndex.y() << " , " << (int)currentIndex.z() << std::endl;
+#endif
         
         TransversalData root(bestStats.level, itr.first, itr.second);
         stack.push(root);
@@ -127,8 +135,6 @@ BestStats CPC::Encoder::computeBestSubOctreeLevel(Octree & octree)
 
         best.checkAndUpdate(totalSize, level);
     }//);
-
-    std::cout << "Best Level: " << (int)best.level << " TotalSize: " << best.size << std::endl;
     return best;
 }
 
@@ -141,8 +147,8 @@ size_t CPC::Encoder::computeSubOctreeSize(Octree& octree, unsigned char level)
     Index currentIndex(0, 0, 0); // assume always start at (0,0,0)
     for (auto& itr : levels[level])
     {
-        auto offset((currentIndex - itr.first).eval());
-        if (offset.x() < 0 || offset.x() > MAX_OFFSET || offset.y() < 0 || offset.y() > MAX_OFFSET || offset.z() < 0 || offset.z() > MAX_OFFSET)
+        Eigen::Vector3i offset((itr.first.cast<int>() - currentIndex.cast<int>()));
+        if (offset.x() < -MAX_OFFSET || offset.x() > MAX_OFFSET || offset.y() < -MAX_OFFSET || offset.y() > MAX_OFFSET || offset.z() < -MAX_OFFSET || offset.z() > MAX_OFFSET)
             totalSize += sizeof(FullAddress);
         else
             totalSize += sizeof(OffsetAddress);
@@ -165,5 +171,5 @@ FullAddress CPC::Encoder::getEncodedFullAddress(const Index & index)
 
 OffsetAddress CPC::Encoder::getEncodedOffsetAddress(const Index & index)
 {
-    return MortonCode::encode32(index) & 0x7fffffff; // compute morton code then unset the full address flag (left-most bit).
+    return (OffsetAddress)MortonCode::encode32(index) & 0x7fffffff; // compute morton code then unset the full address flag (left-most bit).
 }

@@ -8,8 +8,8 @@
 namespace CPC
 {
     typedef unsigned long long FullAddress;
-    typedef unsigned int OffsetAddress; // remember to update the MAX_OFFSET value
-    const OffsetAddress MAX_OFFSET = 1024;
+    typedef int OffsetAddress; // remember to update the MAX_OFFSET value
+    const OffsetAddress MAX_OFFSET = 512;
 
     // Data the help store and write the encoded data
     struct EncodedData
@@ -19,29 +19,33 @@ namespace CPC
 
         void add(unsigned char val)
         {
-            if (currentSize + 1 >= encodedData.size())
-                encodedData.resize(encodedData.size() * 2);
             encodedData[currentSize++] = val;
         }
         void add(char val)
         {
-            if (currentSize + 1 >= encodedData.size())
-                encodedData.resize(encodedData.size() * 2);
             encodedData[currentSize++] = val;
         }
         template <class T>
         void add(T val)
         {
-            if (currentSize + sizeof(val) >= encodedData.size())
-                encodedData.resize(encodedData.size() * 2);
-            memcpy(&(encodedData[currentSize]), &val, sizeof(val));
-            currentSize += sizeof(val);
+            unsigned char* raw = (unsigned char*)&val;
+            for (int i = sizeof(val)-1; i > -1; --i)
+            {
+                add(raw[i]);
+            }
         }
 
         template <class T>
         void read(T& val)
         {
-            memcpy(&(val), &(encodedData[currentSize]), sizeof(val));
+            T raw;
+            memcpy(&(raw), &(encodedData[currentSize]), sizeof(val));
+            unsigned char* rawPtr = (unsigned char*)&raw;
+            unsigned char* valPtr = (unsigned char*)&val;
+            for (int i = sizeof(val) - 1; i > -1; --i)
+            {
+                valPtr[i] = rawPtr[sizeof(val) - 1 - i];
+            }
             currentSize += sizeof(val);
         }
 

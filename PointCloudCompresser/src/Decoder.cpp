@@ -39,23 +39,34 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
         {
             FullAddress mortonCode;
             data.read(mortonCode);
-            currentIndex = MortonCode::decode64(mortonCode);
+            currentIndex = decodedFullAddress(mortonCode);
 #ifdef DEBUG_ENCODING
             unsigned char* chars = (unsigned char*)&mortonCode;
-            std::cout << "Sub root: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << std::endl;
+            std::cout << "Sub root: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << " , "
+                                      << (int)chars[4] << " , " << (int)chars[5] << " , " << (int)chars[6] << " , " << (int)chars[7] << std::endl;
 #endif
         }
         else
         {
             OffsetAddress mortonCode;
             data.read(mortonCode);
-            currentIndex += MortonCode::decode32(mortonCode);
+            auto offsets = decodedOffsetAddress(mortonCode);
 #ifdef DEBUG_ENCODING
-            std::cout << "Sub root Offset: " << (int)mortonCode << std::endl;
+            std::cout << "offset: " << offsets.x() << " , " << offsets.y() << " , " << offsets.z() << std::endl;
+#endif
+            currentIndex.x() = (unsigned int)((int)currentIndex.x() + offsets.x());
+            currentIndex.y() = (unsigned int)((int)currentIndex.y() + offsets.y());
+            currentIndex.z() = (unsigned int)((int)currentIndex.z() + offsets.z());
+
+#ifdef DEBUG_ENCODING
+            unsigned char* chars = (unsigned char*)&mortonCode;
+            std::cout << "Sub root Offset: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << std::endl;
 #endif
         }
         unsigned char rootChild = data.readNext();
 #ifdef DEBUG_ENCODING
+        unsigned char* chars = (unsigned char*)&mortonCode;
+        std::cout << "Current Sub root: " << (int)currentIndex.x() << " , " << (int)currentIndex.y() << " , " << (int)currentIndex.z() << std::endl;
         std::cout << (int)rootChild << std::endl;
 #endif
         
@@ -135,6 +146,30 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
         // remember to increament number of byte already read.
         i = data.currentSize;
     }
+}
+
+Index CPC::Decoder::decodedFullAddress(const FullAddress & code)
+{
+    return MortonCode::decode64(code);
+}
+
+Eigen::Vector3i CPC::Decoder::decodedOffsetAddress(const OffsetAddress & code)
+{
+    auto index = MortonCode::decode32(code);
+    Eigen::Vector3i result(index.x(), index.y(), index.z());
+    if (index.x() > MAX_OFFSET)
+    {
+        result.x() = index.x() - 2 * MAX_OFFSET;
+    }
+    if (index.y() > MAX_OFFSET)
+    {
+        result.y() = index.y() - 2 * MAX_OFFSET;
+    }
+    if (index.z() > MAX_OFFSET)
+    {
+        result.z() = index.z() - 2 * MAX_OFFSET;
+    }
+    return result;
 }
 
 void CPC::DecoderTransversalData::processChild(unsigned char child)
