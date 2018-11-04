@@ -48,6 +48,7 @@ namespace CPC
 
         bool checkFullAddressFlag()
         {
+            // Only peek at the data, don't advance it
             return (encodedData[currentSize] & 0x80) != 0;
         }
 
