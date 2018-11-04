@@ -44,20 +44,39 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
     auto& levels = octree.getLevels();
 
     std::stack<TransversalData> stack;
-
+    Index currentIndex(0, 0, 0); // set the current Index to a large offset, hack to make it fail the first test
+    
     // Encode from the subOctreeLevel and truncate the upper levels
     // For each node in the subOctreeLevel encode the index, then transverse the full sub-octree
     for (auto& itr : levels[bestStats.level])
     {
-        // compute the Morton Code of sub-octree offset
-        auto mortonCode = getEncodedFullAddress(itr.first); // set the left most bit, to signal full address
-        // Write the offset index address at the start of this sub-octree node.
-        data.add(mortonCode);
+        Eigen::Vector3i offset((itr.first.cast<int>() - currentIndex.cast<int>()));
+        std::cout << "offset: " << offset.x() << " , " << offset.y() << " , " << offset.z() << std::endl;
+        // if the new offset is beyond the MAX_OFFSET distance, use full address instead of offset
+        if (offset.x() < 0 || offset.x() > MAX_OFFSET || offset.y() < 0 || offset.y() > MAX_OFFSET || offset.z() < 0 || offset.z() > MAX_OFFSET)
+        {
+            // compute the Morton Code of sub-octree offset
+            auto mortonCode = getEncodedFullAddress(itr.first); // set the left most bit, to signal full address
+            // Write the offset index address at the start of this sub-octree node.
+            data.add(mortonCode);
+            currentIndex = itr.first;
 #ifdef DEBUG_ENCODING
-        unsigned char* chars = (unsigned char*)&mortonCode;
-        std::cout << "Sub root: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << std::endl;
+            unsigned char* chars = (unsigned char*)&mortonCode;
+            std::cout << "Sub root: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << " , "
+                                      << (int)chars[4] << " , " << (int)chars[5] << " , " << (int)chars[6] << " , " << (int)chars[7] << std::endl;
 #endif
-
+        }
+        else
+        {
+            Index unsignedOffset((unsigned int)offset.x(), (unsigned int)offset.y(), (unsigned int)offset.z());
+            auto mortonCode = getEncodedOffsetAddress(unsignedOffset);
+            data.add(mortonCode);
+            currentIndex += unsignedOffset;
+#ifdef DEBUG_ENCODING
+            std::cout << "Sub root Offset: " << (int)mortonCode << std::endl;
+#endif
+        }
+        
         TransversalData root(bestStats.level, itr.first, itr.second);
         stack.push(root);
 
@@ -118,8 +137,20 @@ BestStats CPC::Encoder::computeBestSubOctreeLevel(Octree & octree)
 size_t CPC::Encoder::computeSubOctreeSize(Octree& octree, unsigned char level)
 {
     auto& levels = octree.getLevels();
+
+    size_t totalSize = 0;
+    // compute the dynamic size of the variable length morton code
+    Index currentIndex(0, 0, 0); // assume always start at (0,0,0)
+    for (auto& itr : levels[level])
+    {
+        auto offset((currentIndex - itr.first).eval());
+        if (offset.x() < 0 || offset.x() > MAX_OFFSET || offset.y() < 0 || offset.y() > MAX_OFFSET || offset.z() < 0 || offset.z() > MAX_OFFSET)
+            totalSize += sizeof(unsigned long long);
+        else
+            totalSize += sizeof(unsigned char);
+    }
+
     // Each sub octree root node need a address index (8 byte)
-    size_t totalSize = levels[level].size() * sizeof(unsigned long long);
     // Now compute the size of each of the children node using this sub octree level.
     for (unsigned char i = level; i < (unsigned char)octree.getMaxDepth(); ++i)
     {

@@ -46,6 +46,11 @@ namespace CPC
             return encodedData[currentSize++];
         }
 
+        bool checkFullAddressFlag()
+        {
+            return (encodedData[currentSize] & 0x80) != 0;
+        }
+
         void resize(size_t size)
         {
             encodedData.resize(size);
@@ -110,6 +115,8 @@ namespace CPC
             virtual ~Encoder();
 
             EncodedData encode(Octree& octree, unsigned char forceSubOctreeLevel = (unsigned char)-1);
+
+            static const unsigned char MAX_OFFSET = 4;
 
         protected:
             void DepthFirstTransversal(Octree& octree, BestStats& bestStats, EncodedData& encodeData);

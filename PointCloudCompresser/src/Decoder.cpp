@@ -27,20 +27,38 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
     auto& encodedData = data.encodedData;
 
     std::stack<DecoderTransversalData> states;
+
+    Index currentIndex(0, 0, 0);
     
     for (size_t i = 0; i < data.encodedData.size(); )
     {
         // Each sub-root node need to be process
         unsigned char currentLevel = data.subOctreeDepth;
-        unsigned long long mortonCode;
-        data.read(mortonCode);
-        unsigned char rootChild = data.readNext();
-        Index rootIndex = MortonCode::decode64(mortonCode);
+        
+        if (data.checkFullAddressFlag())
+        {
+            unsigned long long mortonCode;
+            data.read(mortonCode);
+            currentIndex = MortonCode::decode64(mortonCode);
 #ifdef DEBUG_ENCODING
-        unsigned char* chars = (unsigned char*)&mortonCode;
-        std::cout << "Sub root: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << std::endl;
+            unsigned char* chars = (unsigned char*)&mortonCode;
+            std::cout << "Sub root: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << std::endl;
+#endif
+        }
+        else
+        {
+            unsigned char mortonCode;
+            data.read(mortonCode);
+            currentIndex += MortonCode::decode8(mortonCode);
+#ifdef DEBUG_ENCODING
+            std::cout << "Sub root Offset: " << (int)mortonCode << std::endl;
+#endif
+        }
+        unsigned char rootChild = data.readNext();
+#ifdef DEBUG_ENCODING
         std::cout << (int)rootChild << std::endl;
 #endif
+        
         // Need to recursively add the sub-root back to the main root
         for (unsigned char childId = 0; childId < 8; ++childId)
         {
@@ -48,12 +66,12 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
             unsigned char exist = rootChild & childBit;
             if (exist)
             {
-                octree.addNodeRecursive(currentLevel, rootIndex, childId);
+                octree.addNodeRecursive(currentLevel, currentIndex, childId);
             }
         }
         
-        auto& root = octree.getLevels()[currentLevel][rootIndex];
-        DecoderTransversalData trans(currentLevel, rootIndex, root);
+        auto& root = octree.getLevels()[currentLevel][currentIndex];
+        DecoderTransversalData trans(currentLevel, currentIndex, root);
         states.push(trans);
 
         // keep processing next byte until no more child/parent is un processed.
