@@ -243,12 +243,13 @@ bool CPC::PointCloudIO::zipCompress(const std::string & input, const std::string
     command << "7z.exe a " << output << ' ' << input;
     std::cout << command.str() << std::endl;
     int error = system(command.str().c_str());
-    return error;
+    return error == 0;
 }
 
 bool CPC::PointCloudIO::zipDecompress(const std::string & input, const std::string & output)
 {
     std::stringstream command;
     command << "7z.exe e " << output << ' ' << input << " -y";
-    return system(command.str().c_str());
+    int error = system(command.str().c_str());
+    return error == 0;
 }
