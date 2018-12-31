@@ -101,14 +101,18 @@ int main(int argc, char* argv[])
         PointCloudIO io;
         auto pointCloud = io.loadPly(inputPath.string());
 
+        auto startTime = std::clock();
         // Generate Octree
         std::cout << "Generating Bottom-Up Octree..." << std::endl;
         Octree octree(depth, pointCloud);
+        auto octreeTime = std::clock();
 
         // Encode
         std::cout << "Encoding Octree..." << std::endl;
         Encoder encoder;
         auto encodedData = encoder.encode(octree, (unsigned char)forceDepth);
+        auto duration = std::clock() - startTime;
+        std::cout << "Generation of Octree and Encoding Octree Timing " << octreeTime - startTime / (CLOCKS_PER_SEC / 1000) << " : " << std::clock() - octreeTime / (CLOCKS_PER_SEC / 1000) << std::endl;
 
         // write cpc
         std::cout << "Compressing and saving to " << output << std::endl;
@@ -125,10 +129,12 @@ int main(int argc, char* argv[])
         PointCloudIO io;
         auto encodedData = io.loadCpc(inputPath.string());
 
+        auto startTime = std::clock();
         // decoded into octree
         std::cout << "Decoding into Octree" << std::endl;
         Decoder decoder;
         auto octree = decoder.decode(encodedData);
+        std::cout << "Decoding Timing " << std::clock() - startTime / (CLOCKS_PER_SEC / 1000) << std::endl;
 
         // write ply
         std::cout << "Writing decoded point cloud: " << output << std::endl;

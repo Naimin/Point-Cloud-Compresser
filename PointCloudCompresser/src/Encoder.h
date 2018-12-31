@@ -4,12 +4,25 @@
 #include <limits>
 
 //#define DEBUG_ENCODING
+#define AddressLength64
 
 namespace CPC
 {
+#ifdef AddressLength64
     typedef unsigned long long FullAddress;
     typedef int OffsetAddress; // remember to update the MAX_OFFSET value
     const OffsetAddress MAX_OFFSET = 512;
+#endif
+#ifdef AddressLength32
+    typedef unsigned int FullAddress;
+    typedef short OffsetAddress; // remember to update the MAX_OFFSET value
+    const OffsetAddress MAX_OFFSET = 16;
+#endif
+#ifdef AddressLength16
+    typedef unsigned short FullAddress;
+    typedef char OffsetAddress; // remember to update the MAX_OFFSET value
+    const OffsetAddress MAX_OFFSET = 2;
+#endif
 
     // Data the help store and write the encoded data
     struct EncodedData
@@ -129,6 +142,7 @@ namespace CPC
             void DepthFirstTransversal(Octree& octree, BestStats& bestStats, EncodedData& encodeData);
             BestStats computeBestSubOctreeLevel(Octree& octree);
             size_t computeSubOctreeSize(Octree & octree, unsigned char level);
+            int getOptimalCodeLength(unsigned char level, size_t & offsetLength, long long & maxOffset);
             FullAddress getEncodedFullAddress(const Index& index);
             OffsetAddress getEncodedOffsetAddress(const Index& index);
     };

@@ -131,8 +131,8 @@ BestStats CPC::Encoder::computeBestSubOctreeLevel(Octree & octree)
     for(unsigned char level = 0; level < maxDepth; ++level)
     {
         size_t totalSize = computeSubOctreeSize(octree, level);
-        std::cout << "Level: " << (int)level << " TotalSize: " << totalSize << std::endl;
-
+        //std::cout << "Level: " << (int)level << " TotalSize: " << totalSize << std::endl;
+        std::cout << totalSize << std::endl;
         best.checkAndUpdate(totalSize, level);
     }//);
     return best;
@@ -142,18 +142,32 @@ size_t CPC::Encoder::computeSubOctreeSize(Octree& octree, unsigned char level)
 {
     auto& levels = octree.getLevels();
 
+    long long maxOffset = MAX_OFFSET;
+    size_t jumpAddressSize = sizeof(OffsetAddress);
+    size_t fullAddressSize = sizeof(FullAddress);
+    //size_t fullAddressSize = getOptimalCodeLength(level, jumpAddressSize, maxOffset);
+
     size_t totalSize = 0;
     // compute the dynamic size of the variable length morton code
     Index currentIndex(0, 0, 0); // assume always start at (0,0,0)
+    int numOfFullAddress = 0;
+    int numOfOffsetAddress = 0;
     for (auto& itr : levels[level])
     {
         Eigen::Vector3i offset((itr.first.cast<int>() - currentIndex.cast<int>()));
-        if (offset.x() < -MAX_OFFSET || offset.x() > MAX_OFFSET || offset.y() < -MAX_OFFSET || offset.y() > MAX_OFFSET || offset.z() < -MAX_OFFSET || offset.z() > MAX_OFFSET)
-            totalSize += sizeof(FullAddress);
+        if (offset.x() < -maxOffset || offset.x() > maxOffset || offset.y() < -maxOffset || offset.y() > maxOffset || offset.z() < -maxOffset || offset.z() > maxOffset)
+        {
+            totalSize += fullAddressSize;
+            ++numOfFullAddress;
+        }
         else
-            totalSize += sizeof(OffsetAddress);
+        {
+            totalSize += jumpAddressSize;
+            ++numOfOffsetAddress;
+        }
         currentIndex = itr.first;
     }
+    //std::cout << "Level: " << (int)level << " Full Address: " << numOfFullAddress << "," << numOfFullAddress*fullAddressSize << " Offset Address: " << numOfOffsetAddress << "," << numOfOffsetAddress*jumpAddressSize << std::endl;
 
     // Each sub octree root node need a address index (8 byte)
     // Now compute the size of each of the children node using this sub octree level.
@@ -162,6 +176,34 @@ size_t CPC::Encoder::computeSubOctreeSize(Octree& octree, unsigned char level)
         totalSize += levels[i].size() * sizeof(unsigned char);
     }
     return totalSize;
+}
+
+int CPC::Encoder::getOptimalCodeLength(unsigned char level, size_t& offsetLength, long long & maxOffset)
+{
+    if (level <= 6)
+    {
+        offsetLength = 1;
+        maxOffset = 2;
+        return 2;
+    }
+    else if (level <= 11)
+    {
+        offsetLength = 2;
+        maxOffset = 16;
+        return 4;
+    }
+    else if (level <= 16)
+    {
+        offsetLength = 4;
+        maxOffset = 512;
+        return 6;
+    }
+    else
+    {
+        offsetLength = 6;
+        maxOffset = 32768 / 2;
+        return 8;
+    }
 }
 
 FullAddress CPC::Encoder::getEncodedFullAddress(const Index & index)
