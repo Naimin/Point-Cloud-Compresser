@@ -47,9 +47,10 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
     
     // Encode from the subOctreeLevel and truncate the upper levels
     // For each node in the subOctreeLevel encode the index, then transverse the full sub-octree
-    for (auto& itr : levels[bestStats.level])
+    for (auto& itr : levels[bestStats.level].available)
     {
-        Eigen::Vector3i offset((itr.first.cast<int>() - currentIndex.cast<int>()));
+        auto index = MortonCode::decode(itr);
+        Eigen::Vector3i offset(index.cast<int>() - currentIndex.cast<int>());
 #ifdef DEBUG_ENCODING
         std::cout << "offset: " << offset.x() << " , " << offset.y() << " , " << offset.z() << std::endl;
 #endif
@@ -57,7 +58,7 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
         if (offset.x() < -MAX_OFFSET || offset.x() > MAX_OFFSET || offset.y() < -MAX_OFFSET || offset.y() > MAX_OFFSET || offset.z() < -MAX_OFFSET || offset.z() > MAX_OFFSET)
         {
             // compute the Morton Code of sub-octree offset
-            FullAddress mortonCode = getEncodedFullAddress(itr.first); // set the left most bit, to signal full address
+            FullAddress mortonCode = getEncodedFullAddress(index); // set the left most bit, to signal full address
             // Write the offset index address at the start of this sub-octree node.
             data.add(mortonCode);
 #ifdef DEBUG_ENCODING
@@ -77,13 +78,13 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
 #endif
         }
         // update the currentIndex
-        currentIndex = itr.first;
+        currentIndex = index;
 #ifdef DEBUG_ENCODING
         unsigned char* chars = (unsigned char*)&mortonCode;
         std::cout << "Current Sub root: " << (int)currentIndex.x() << " , " << (int)currentIndex.y() << " , " << (int)currentIndex.z() << std::endl;
 #endif
         
-        TransversalData root(bestStats.level, itr.first, itr.second);
+        TransversalData root(bestStats.level, index, levels[bestStats.level][itr]);
         stack.push(root);
 
         while (!stack.empty())
@@ -152,9 +153,10 @@ size_t CPC::Encoder::computeSubOctreeSize(Octree& octree, unsigned char level)
     Index currentIndex(0, 0, 0); // assume always start at (0,0,0)
     int numOfFullAddress = 0;
     int numOfOffsetAddress = 0;
-    for (auto& itr : levels[level])
+    for (auto& itr : levels[level].available)
     {
-        Eigen::Vector3i offset((itr.first.cast<int>() - currentIndex.cast<int>()));
+        auto index = MortonCode::decode(itr);
+        Eigen::Vector3i offset((index.cast<int>() - currentIndex.cast<int>()));
         if (offset.x() < -maxOffset || offset.x() > maxOffset || offset.y() < -maxOffset || offset.y() > maxOffset || offset.z() < -maxOffset || offset.z() > maxOffset)
         {
             totalSize += fullAddressSize;
@@ -165,7 +167,7 @@ size_t CPC::Encoder::computeSubOctreeSize(Octree& octree, unsigned char level)
             totalSize += jumpAddressSize;
             ++numOfOffsetAddress;
         }
-        currentIndex = itr.first;
+        currentIndex = index;
     }
     //std::cout << "Level: " << (int)level << " Full Address: " << numOfFullAddress << "," << numOfFullAddress*fullAddressSize << " Offset Address: " << numOfOffsetAddress << "," << numOfOffsetAddress*jumpAddressSize << std::endl;
 

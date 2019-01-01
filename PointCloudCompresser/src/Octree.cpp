@@ -4,13 +4,21 @@
 
 using namespace CPC;
 
-CPC::Octree::Octree(unsigned int maxDepth, BoundingBox& bbox_) : levels(maxDepth), levelMutexs(maxDepth), bbox(bbox_)
+CPC::Octree::Octree(unsigned int maxDepth, BoundingBox& bbox_) : levelMutexs(maxDepth), bbox(bbox_)
 {
+    for (unsigned int i = 0; i < maxDepth; ++i)
+    {
+        levels.push_back(Level(i));
+    }
     leafCellSize = computeLeafCellSize(maxDepth, bbox);
 }
 
-Octree::Octree(unsigned int maxDepth, PointCloud& pointCloud) : levels(maxDepth), levelMutexs(maxDepth)
+Octree::Octree(unsigned int maxDepth, PointCloud& pointCloud) : levelMutexs(maxDepth)
 {
+    for (unsigned int i = 0; i < maxDepth; ++i)
+    {
+        levels.push_back(Level(i));
+    }
     generate(maxDepth, pointCloud);
 }
 
@@ -23,7 +31,15 @@ PointCloud Octree::generatePointCloud()
     tbb::atomic<size_t> counter = 0; // keep track of how many actual point there is
 
     // Hack: We should change the internal representation of each Octree Level as a vector instead of map.
-    std::vector<std::pair< Index, Node>> vectorized(currentLevel.begin(), currentLevel.end());
+    std::vector<std::pair< Index, Node>> vectorized;
+    int j = 0;
+    for (auto itr : currentLevel.available)
+    {
+        auto index = MortonCode::decode(itr);
+        std::pair<Index, Node> pair(index, currentLevel[itr]);
+        vectorized.push_back(pair);
+        ++j;
+    }
     tbb::parallel_for((size_t)0, vectorized.size(), [&](const size_t i)
     //for(size_t i = 0; i < vectorized.size(); ++i)
     {
@@ -93,7 +109,7 @@ Eigen::Vector3f Octree::getLeafCellSize() const
     return leafCellSize;
 }
 
-std::vector<std::map<Index, Node>>& Octree::getLevels()
+std::vector<Level>& Octree::getLevels()
 {
     return levels;
 }
@@ -116,7 +132,7 @@ size_t Octree::getNumOfAllNodes() const
 
 Node& CPC::Octree::addNode(const unsigned int level, const Index & index, const unsigned char child)
 {
-    levels[level].insert(std::make_pair(index, Node(child)));
+    levels[level].insert(index, Node(child));
     return levels[level][index];
 }
 
@@ -225,8 +241,9 @@ bool Octree::nodeExist(const unsigned int level, const Index& index)
     tbb::mutex::scoped_lock lock(levelMutexs[level]);
     auto& currentLevel = levels[level];
     
-    auto itr = currentLevel.find(index);
-    return itr != currentLevel.end();
+    auto address = MortonCode::encode(index);
+    auto itr = currentLevel.available.find(address);
+    return itr != currentLevel.available.end();
 }
 
 bool Octree::addNodeRecursive(const unsigned int level, const Index& index, const unsigned int childIndex)

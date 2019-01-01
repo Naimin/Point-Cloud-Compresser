@@ -17,6 +17,34 @@ unsigned char combine(unsigned char val)
     return val;
 }
 
+FullAddress CPC::MortonCode::encode(const Index & index)
+{
+#ifdef AddressLength64
+    return encode64(index);
+#endif
+#ifdef AddressLength32
+    return encode32(index);
+#endif
+#ifdef AddressLength16
+    // not implemented yet
+#endif
+    return FullAddress();
+}
+
+Index CPC::MortonCode::decode(FullAddress address)
+{
+#ifdef AddressLength64
+    return decode64(address);
+#endif
+#ifdef AddressLength32
+    return decode32(address);
+#endif
+#ifdef AddressLength16
+    // not implemented yet
+#endif
+    return Index(0,0,0);
+}
+
 unsigned char CPC::MortonCode::encode8(const Index & index)
 {
     return (split(index.x()) | split(index.y() << 1) | split(index.z() << 2));

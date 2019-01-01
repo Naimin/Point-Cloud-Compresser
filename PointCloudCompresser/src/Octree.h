@@ -3,11 +3,13 @@
 #include <tbb/mutex.h>
 #include <vector>
 #include <map>
+#include <set>
 #include <atomic>
 
 #include "PointCloud.h"
 #include "BoundingBox.h"
 #include "Index.h"
+#include "MortonCode.h"
 
 namespace CPC
 {
@@ -22,8 +24,42 @@ namespace CPC
         std::atomic<unsigned char> children; // one bit for each child
     };
 
-    typedef std::map<Index, Node> Level;
+    struct Level
+    {
+        Level(unsigned char level)
+        {
+            auto maxDimension = 2 ^ level;
+            nodes.resize(maxDimension * maxDimension * maxDimension);
+        }
 
+        void insert(const Index& index, Node& node)
+        {
+            auto address = MortonCode::encode(index);
+            this->operator[](address).children = node.children.load();
+            available.insert(address);
+        }
+
+        // add the overload operator []
+        Node& operator[] (const FullAddress& x) {
+            return nodes[x];
+        }
+
+        Node& operator[] (const Index& index)
+        {
+            auto address = MortonCode::encode(index);
+            return this->operator[](address);
+        }
+
+        size_t size() const
+        {
+            return available.size();
+        }
+
+        std::map<FullAddress, Node> nodes;
+        std::set<FullAddress> available;
+    };    
+    //typedef std::map<Index, Node> Level;
+    
     class Octree
     {
         public:
