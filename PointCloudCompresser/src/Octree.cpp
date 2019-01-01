@@ -1,6 +1,7 @@
 #include "Octree.h"
 #include <tbb/parallel_for.h>
 #include <tbb/blocked_range.h>
+#include <iostream>
 
 using namespace CPC;
 
@@ -125,14 +126,21 @@ void Octree::generate(unsigned int maxDepth, PointCloud& pointCloud)
     bbox = computeBoundingBox(pointCloud);
     leafCellSize = computeLeafCellSize(maxDepth, bbox);
 
+    tbb::atomic<size_t> bottomUpTransverseCounter = 0;
+
     // for each point add it into the octree
     tbb::parallel_for((size_t)0, pointCloud.positions.size(), [&](size_t index)
     //for(size_t index = 0; index < pointCloud.positions.size(); ++index)
     {
         Eigen::Vector3f& pos = pointCloud.positions[index];
         auto leafAddress = computeLeafAddress(bbox, leafCellSize, pos);
-        addLeaf(maxDepth, leafAddress);
+        size_t transversalCounter = 0;
+        addLeaf(maxDepth, leafAddress, transversalCounter);
+        bottomUpTransverseCounter += transversalCounter;
     });
+
+    std::cout << "BottomUp transversal: " << bottomUpTransverseCounter << std::endl;
+    std::cout << "Normal transversal: " << pointCloud.positions.size() * maxDepth << std::endl;
 }
 
 BoundingBox Octree::computeBoundingBox(PointCloud & pointCloud)
@@ -200,7 +208,7 @@ unsigned char Octree::computeOctreeChildIndex(const Index& index)
     return childIndex;
 }
 
-bool Octree::addLeaf(const unsigned int maxDepth, const Index& index)
+bool Octree::addLeaf(const unsigned int maxDepth, const Index& index, size_t& transversalCounter)
 {
     // get the parent address
     Index parent = computeParentAddress(index);
@@ -208,10 +216,11 @@ bool Octree::addLeaf(const unsigned int maxDepth, const Index& index)
 
     // check if the parent exist 
     if (!nodeExist(maxDepth - 1, parent))
-        addNodeRecursive(maxDepth - 1, parent, octreeChild);
+        addNodeRecursive(maxDepth - 1, parent, octreeChild, transversalCounter);
     
     // Add this child into the the parent node
     addNodeChild(maxDepth - 1, parent, octreeChild);
+    ++transversalCounter;
 
     return true;
 }
@@ -229,7 +238,7 @@ bool Octree::nodeExist(const unsigned int level, const Index& index)
     return itr != currentLevel.end();
 }
 
-bool Octree::addNodeRecursive(const unsigned int level, const Index& index, const unsigned int childIndex)
+bool Octree::addNodeRecursive(const unsigned int level, const Index& index, const unsigned int childIndex, size_t& transversalCounter)
 {
     if ((size_t)level >= levels.size())
         return false;
@@ -250,10 +259,12 @@ bool Octree::addNodeRecursive(const unsigned int level, const Index& index, cons
         localChild = computeOctreeChildIndex(localIndex);
         // find the parent index 
         localIndex = computeParentAddress(localIndex);
+        ++transversalCounter;
     }
 
     // hit a node that already exist or root node, then we just need to update the node
     addNodeChild(localLevel, localIndex, localChild);
+    ++transversalCounter;
     return true;
 }
 

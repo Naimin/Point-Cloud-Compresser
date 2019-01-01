@@ -77,7 +77,8 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
             unsigned char exist = rootChild & childBit;
             if (exist)
             {
-                octree.addNodeRecursive(currentLevel, currentIndex, childId);
+                size_t dummy;
+                octree.addNodeRecursive(currentLevel, currentIndex, childId, dummy);
             }
         }
         
