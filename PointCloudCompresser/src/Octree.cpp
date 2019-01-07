@@ -313,6 +313,7 @@ void Octree::addNodeChild(const unsigned int level, const Index& parentIndex, co
 {
     auto& currentLevel = levels[level];
     currentLevel[parentIndex].addChild(childIndex);
+    currentLevel.available.insert(MortonCode::encode(parentIndex));
 }
 
 bool Node::addChild(unsigned char index)

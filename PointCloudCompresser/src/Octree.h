@@ -29,7 +29,7 @@ namespace CPC
         Level(unsigned char level)
         {
             auto maxDimension = 2 ^ level;
-            nodes.resize(maxDimension * maxDimension * maxDimension);
+            nodes.resize(3 * 2097152 );
         }
 
         void insert(const Index& index, Node& node)
@@ -55,7 +55,7 @@ namespace CPC
             return available.size();
         }
 
-        std::map<FullAddress, Node> nodes;
+        std::vector<Node> nodes;
         std::set<FullAddress> available;
     };    
     //typedef std::map<Index, Node> Level;
