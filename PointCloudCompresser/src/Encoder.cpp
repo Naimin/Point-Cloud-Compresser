@@ -47,79 +47,85 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
     
     // Encode from the subOctreeLevel and truncate the upper levels
     // For each node in the subOctreeLevel encode the index, then transverse the full sub-octree
-    for (auto& itr : levels[bestStats.level].available)
+    tbb::mutex mutex;
+    tbb::parallel_for((size_t)0, levels[bestStats.level].nodes.size(), [&](const size_t i)
     {
-        auto index = MortonCode::decode(itr);
-        Eigen::Vector3i offset(index.cast<int>() - currentIndex.cast<int>());
-#ifdef DEBUG_ENCODING
-        std::cout << "offset: " << offset.x() << " , " << offset.y() << " , " << offset.z() << std::endl;
-#endif
-        // if the new offset is beyond the MAX_OFFSET distance, use full address instead of offset
-        if (offset.x() < -MAX_OFFSET || offset.x() > MAX_OFFSET || offset.y() < -MAX_OFFSET || offset.y() > MAX_OFFSET || offset.z() < -MAX_OFFSET || offset.z() > MAX_OFFSET)
+        if (levels[bestStats.level].exist(i))
         {
-            // compute the Morton Code of sub-octree offset
-            FullAddress mortonCode = getEncodedFullAddress(index); // set the left most bit, to signal full address
-            // Write the offset index address at the start of this sub-octree node.
-            data.add(mortonCode);
-#ifdef DEBUG_ENCODING
-            unsigned char* chars = (unsigned char*)&mortonCode;
-            std::cout << "Sub root: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << " , "
-                                      << (int)chars[4] << " , " << (int)chars[5] << " , " << (int)chars[6] << " , " << (int)chars[7] << std::endl;
-#endif
-        }
-        else
-        {
-            Index unsignedOffset((unsigned int)offset.x(), (unsigned int)offset.y(), (unsigned int)offset.z());
-            OffsetAddress mortonCode = getEncodedOffsetAddress(unsignedOffset);
-            data.add(mortonCode);
-#ifdef DEBUG_ENCODING
-            unsigned char* chars = (unsigned char*)&mortonCode;
-            std::cout << "Sub root Offset: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << std::endl;
-#endif
-        }
-        // update the currentIndex
-        currentIndex = index;
-#ifdef DEBUG_ENCODING
-        unsigned char* chars = (unsigned char*)&mortonCode;
-        std::cout << "Current Sub root: " << (int)currentIndex.x() << " , " << (int)currentIndex.y() << " , " << (int)currentIndex.z() << std::endl;
-#endif
-        
-        TransversalData root(bestStats.level, index, levels[bestStats.level][itr]);
-        stack.push(root);
+            tbb::mutex::scoped_lock lock(mutex);
 
-        while (!stack.empty())
-        {
-            TransversalData trans = stack.top();
-            stack.pop();
-
-            // Write into the data when evaluating a new node.
-            unsigned char child = trans.node.children;
-            data.add(child);
+            auto index = MortonCode::decode(i);
+            Eigen::Vector3i offset(index.cast<int>() - currentIndex.cast<int>());
 #ifdef DEBUG_ENCODING
-            std::cout << (int)child << std::endl;
+            std::cout << "offset: " << offset.x() << " , " << offset.y() << " , " << offset.z() << std::endl;
 #endif
-            // iterate over the child and push them into the stack
-            for (unsigned char childId = 0; childId < 8; ++childId)
+            // if the new offset is beyond the MAX_OFFSET distance, use full address instead of offset
+            if (offset.x() < -MAX_OFFSET || offset.x() > MAX_OFFSET || offset.y() < -MAX_OFFSET || offset.y() > MAX_OFFSET || offset.z() < -MAX_OFFSET || offset.z() > MAX_OFFSET)
             {
-                // for each child id, check if they exist
-                unsigned char childBit = 1 << childId;
-                unsigned char exist = child & childBit;
-                if (exist)
-                {
-                    Index childIndex(trans.index * 2);
-                    // apply the child offset to 2 x Parent index
-                    childIndex += octree.getChildOffset(childId);
+                // compute the Morton Code of sub-octree offset
+                FullAddress mortonCode = getEncodedFullAddress(index); // set the left most bit, to signal full address
+                // Write the offset index address at the start of this sub-octree node.
+                data.add(mortonCode);
+#ifdef DEBUG_ENCODING
+                unsigned char* chars = (unsigned char*)&mortonCode;
+                std::cout << "Sub root: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << " , "
+                    << (int)chars[4] << " , " << (int)chars[5] << " , " << (int)chars[6] << " , " << (int)chars[7] << std::endl;
+#endif
+            }
+            else
+            {
+                Index unsignedOffset((unsigned int)offset.x(), (unsigned int)offset.y(), (unsigned int)offset.z());
+                OffsetAddress mortonCode = getEncodedOffsetAddress(unsignedOffset);
+                data.add(mortonCode);
+#ifdef DEBUG_ENCODING
+                unsigned char* chars = (unsigned char*)&mortonCode;
+                std::cout << "Sub root Offset: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << std::endl;
+#endif
+            }
+            // update the currentIndex
+            currentIndex = index;
+#ifdef DEBUG_ENCODING
+            unsigned char* chars = (unsigned char*)&mortonCode;
+            std::cout << "Current Sub root: " << (int)currentIndex.x() << " , " << (int)currentIndex.y() << " , " << (int)currentIndex.z() << std::endl;
+#endif
 
-                    // only push node if there is actual child node
-                    if (trans.level + 1 < data.maxDepth)
+            TransversalData root(bestStats.level, index, levels[bestStats.level][i]);
+            stack.push(root);
+
+            while (!stack.empty())
+            {
+                TransversalData trans = stack.top();
+                stack.pop();
+
+                // Write into the data when evaluating a new node.
+                unsigned char child = trans.node.children;
+                data.add(child);
+#ifdef DEBUG_ENCODING
+                std::cout << (int)child << std::endl;
+#endif
+                // iterate over the child and push them into the stack
+                for (unsigned char childId = 0; childId < 8; ++childId)
+                {
+                    // for each child id, check if they exist
+                    unsigned char childBit = 1 << childId;
+                    unsigned char exist = child & childBit;
+                    if (exist)
                     {
-                        TransversalData transChild(trans.level + 1, childIndex, levels[trans.level + 1][childIndex]);
-                        stack.push(transChild);
+                        Index childIndex(trans.index * 2);
+                        // apply the child offset to 2 x Parent index
+                        childIndex += octree.getChildOffset(childId);
+
+                        // only push node if there is actual child node
+                        if (trans.level + 1 < data.maxDepth)
+                        {
+                            TransversalData transChild(trans.level + 1, childIndex, levels[trans.level + 1][childIndex]);
+                            stack.push(transChild);
+                        }
                     }
                 }
             }
         }
-    }
+    });
 }
 
 BestStats CPC::Encoder::computeBestSubOctreeLevel(Octree & octree)
@@ -153,22 +159,27 @@ size_t CPC::Encoder::computeSubOctreeSize(Octree& octree, unsigned char level)
     Index currentIndex(0, 0, 0); // assume always start at (0,0,0)
     int numOfFullAddress = 0;
     int numOfOffsetAddress = 0;
-    for (auto& itr : levels[level].available)
+    tbb::mutex mutex;
+    tbb::parallel_for((size_t)0, levels[level].nodes.size(), [&](const size_t i)
     {
-        auto index = MortonCode::decode(itr);
-        Eigen::Vector3i offset((index.cast<int>() - currentIndex.cast<int>()));
-        if (offset.x() < -maxOffset || offset.x() > maxOffset || offset.y() < -maxOffset || offset.y() > maxOffset || offset.z() < -maxOffset || offset.z() > maxOffset)
+        if (levels[level].exist(i))
         {
-            totalSize += fullAddressSize;
-            ++numOfFullAddress;
+            tbb::mutex::scoped_lock lock(mutex);
+            auto index = MortonCode::decode(i);
+            Eigen::Vector3i offset((index.cast<int>() - currentIndex.cast<int>()));
+            if (offset.x() < -maxOffset || offset.x() > maxOffset || offset.y() < -maxOffset || offset.y() > maxOffset || offset.z() < -maxOffset || offset.z() > maxOffset)
+            {
+                totalSize += fullAddressSize;
+                ++numOfFullAddress;
+            }
+            else
+            {
+                totalSize += jumpAddressSize;
+                ++numOfOffsetAddress;
+            }
+            currentIndex = index;
         }
-        else
-        {
-            totalSize += jumpAddressSize;
-            ++numOfOffsetAddress;
-        }
-        currentIndex = index;
-    }
+    });
     //std::cout << "Level: " << (int)level << " Full Address: " << numOfFullAddress << "," << numOfFullAddress*fullAddressSize << " Offset Address: " << numOfOffsetAddress << "," << numOfOffsetAddress*jumpAddressSize << std::endl;
 
     // Each sub octree root node need a address index (8 byte)

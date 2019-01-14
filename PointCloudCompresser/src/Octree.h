@@ -29,14 +29,15 @@ namespace CPC
         Level(unsigned char level)
         {
             auto maxDimension = 2 ^ level;
-            nodes.resize(3 * 2097152 );
+            nodes.resize(3 * 2097152);
         }
 
         void insert(const Index& index, Node& node)
         {
             auto address = MortonCode::encode(index);
+            if(this->operator[](address).children == 0)
+                ++mSize;
             this->operator[](address).children = node.children.load();
-            available.insert(address);
         }
 
         // add the overload operator []
@@ -52,11 +53,21 @@ namespace CPC
 
         size_t size() const
         {
-            return available.size();
+            return mSize;
+        }
+
+        bool exist(const FullAddress& x) 
+        {
+            return (nodes[x].children != 0);
+        }
+
+        bool exist(const Index& x)
+        {
+            return (this->operator[](x).children != 0);
         }
 
         std::vector<Node> nodes;
-        std::set<FullAddress> available;
+        size_t mSize;
     };    
     //typedef std::map<Index, Node> Level;
     

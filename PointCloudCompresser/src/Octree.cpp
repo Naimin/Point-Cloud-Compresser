@@ -32,14 +32,18 @@ PointCloud Octree::generatePointCloud()
 
     // Hack: We should change the internal representation of each Octree Level as a vector instead of map.
     std::vector<std::pair< Index, Node>> vectorized;
-    int j = 0;
-    for (auto itr : currentLevel.available)
+    tbb::mutex mutex;
+    //for (size_t i = 0; i < currentLevel.nodes.size(); ++i)
+    tbb::parallel_for((size_t)0, currentLevel.nodes.size(), [&](const size_t i)
     {
-        auto index = MortonCode::decode(itr);
-        std::pair<Index, Node> pair(index, currentLevel[itr]);
-        vectorized.push_back(pair);
-        ++j;
-    }
+        if (currentLevel.exist(i))
+        {
+            tbb::mutex::scoped_lock lock(mutex);
+            auto index = MortonCode::decode(i);
+            std::pair<Index, Node> pair(index, currentLevel[i]);
+            vectorized.push_back(pair);
+        }
+    });
     tbb::parallel_for((size_t)0, vectorized.size(), [&](const size_t i)
     //for(size_t i = 0; i < vectorized.size(); ++i)
     {
@@ -240,10 +244,7 @@ bool Octree::nodeExist(const unsigned int level, const Index& index)
     // lock before checking the current level
     tbb::mutex::scoped_lock lock(levelMutexs[level]);
     auto& currentLevel = levels[level];
-    
-    auto address = MortonCode::encode(index);
-    auto itr = currentLevel.available.find(address);
-    return itr != currentLevel.available.end();
+    return currentLevel.exist(index);
 }
 
 bool Octree::addNodeRecursive(const unsigned int level, const Index& index, const unsigned int childIndex)
@@ -312,8 +313,12 @@ Vector3ui CPC::Octree::getChildOffset(unsigned char childId)
 void Octree::addNodeChild(const unsigned int level, const Index& parentIndex, const unsigned int childIndex)
 {
     auto& currentLevel = levels[level];
+    if (currentLevel[parentIndex].children == 0)
+        ++currentLevel.mSize;
+
     currentLevel[parentIndex].addChild(childIndex);
-    currentLevel.available.insert(MortonCode::encode(parentIndex));
+
+    //currentLevel.available.insert(MortonCode::encode(parentIndex));
 }
 
 bool Node::addChild(unsigned char index)
