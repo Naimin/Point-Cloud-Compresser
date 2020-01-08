@@ -11,16 +11,17 @@ namespace CPC
     class PointCloud
     {
         public:
-            PointCloud(bool hasNormal = false, bool hasColor = false);
+            PointCloud(bool hasNormal = false, bool hasColor = false, bool hasScalars = false);
             void resize(size_t size);
             void shrink_to_fit();
 
             bool isValid();
 
         public:
-            bool hasNormal, hasColor;
+            bool hasNormal, hasColor, hasScalar;
             std::vector<Vector3f> positions;
             std::vector<Vector3f> normals;
             std::vector<Vector3u> colors;
+            std::vector<float>    scalars;
     };
 }

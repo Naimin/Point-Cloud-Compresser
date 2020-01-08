@@ -50,7 +50,7 @@ PointCloud CPC::PointCloudIO::loadPly(const std::string & path)
         std::cout << "........................................................................\n";
 
         // Tinyply treats parsed data as untyped byte buffers. See below for examples.
-        std::shared_ptr<PlyData> vertices, normals, colors;
+        std::shared_ptr<PlyData> vertices, normals, colors, scalars;
 
         // The header information can be used to programmatically extract properties on elements
         // known to exist in the header prior to reading the data. For brevity of this sample, properties 
@@ -62,6 +62,9 @@ PointCloud CPC::PointCloudIO::loadPly(const std::string & path)
         catch (const std::exception & e) { std::cerr << "tinyply exception: " << e.what() << std::endl; }
 
         try { colors = file.request_properties_from_element("vertex", { "red", "green", "blue" }, (unsigned int)vertices->count); }
+        catch (const std::exception & e) { std::cerr << "tinyply exception: " << e.what() << std::endl; }
+
+        try { scalars = file.request_properties_from_element("vertex", { "scalar_C2C_absolute_distances" }, (unsigned int)vertices->count); }
         catch (const std::exception & e) { std::cerr << "tinyply exception: " << e.what() << std::endl; }
 
         // Providing a list size hint (the last argument) is a 2x performance improvement. If you have 
@@ -79,8 +82,9 @@ PointCloud CPC::PointCloudIO::loadPly(const std::string & path)
         if (vertices) std::cout << "\tRead " << vertices->count << " total vertices " << std::endl;
         if (normals) std::cout << "\tRead " << normals->count << " total vertex normals " << std::endl;
         if (colors) std::cout << "\tRead " << colors->count << " total vertex colors " << std::endl;
+        if (scalars) std::cout << "\tRead " << scalars->count << " total scalar " << std::endl;
 
-        PointCloud ptCloud(normals.operator bool(), colors.operator bool());
+        PointCloud ptCloud(normals.operator bool(), colors.operator bool(), scalars.operator bool());
         ptCloud.resize(vertices->count);
 
         // type casting to your own native types - Option A
@@ -99,6 +103,12 @@ PointCloud CPC::PointCloudIO::loadPly(const std::string & path)
                 const size_t numBytes = colors->buffer.size_bytes();
                 std::memcpy(ptCloud.colors.data(), colors->buffer.get(), numBytes);
             }*/
+
+            if (scalars)
+            {
+                const size_t numBytes = scalars->buffer.size_bytes();
+                std::memcpy(ptCloud.scalars.data(), scalars->buffer.get(), numBytes);
+            }
         }
 
         return ptCloud;
@@ -128,6 +138,11 @@ bool CPC::PointCloudIO::savePly(const std::string & path, PointCloud & pointClou
     plyFile.add_properties_to_element("vertex", { "x", "y", "z" },
         Type::FLOAT32, pointCloud.positions.size(), reinterpret_cast<uint8_t*>(pointCloud.positions.data()), Type::INVALID, 0);
 
+    if (pointCloud.hasScalar)
+    {
+        plyFile.add_properties_to_element("vertex", { "scalar_C2C_absolute_distances" },
+            Type::FLOAT32, pointCloud.scalars.size(), reinterpret_cast<uint8_t*>(pointCloud.scalars.data()), Type::INVALID, 0);
+    }
     //cube_file.add_properties_to_element("vertex", { "nx", "ny", "nz" },
     //    Type::FLOAT32, cube.normals.size(), reinterpret_cast<uint8_t*>(cube.normals.data()), Type::INVALID, 0);
 

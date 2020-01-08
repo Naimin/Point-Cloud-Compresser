@@ -101,6 +101,20 @@ int main(int argc, char* argv[])
         PointCloudIO io;
         auto pointCloud = io.loadPly(inputPath.string());
 
+        float maxf = 0.12f;
+        if (pointCloud.hasScalar)
+        {
+            for (int i = 0; i < pointCloud.positions.size(); ++i)
+            {
+                if (pointCloud.scalars[i] > maxf)
+                {
+                    pointCloud.scalars[i] = 0;
+                }
+            }
+        }
+
+        io.savePly(inputPath.string(), pointCloud);
+
         auto startTime = std::clock();
         // Generate Octree
         std::cout << "Generating Bottom-Up Octree..." << std::endl;
