@@ -63,6 +63,12 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
             std::cout << "Sub root Offset: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << std::endl;
 #endif
         }
+        unsigned int nodeSize = 0;
+        data.read(nodeSize);
+//#ifdef DEBUG_ENCODING
+        std::cout << "Node Size Decoded: " << nodeSize << std::endl;
+//#endif
+
         unsigned char rootChild = data.readNext();
 #ifdef DEBUG_ENCODING
         unsigned char* chars = (unsigned char*)&mortonCode;
@@ -96,7 +102,7 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
             if (parent.node.children == 0) // assertion
             {
                 states.pop();
-                std::cout << "Shouldn't be here" << std::endl;
+                std::cout << "Shouldn't be here 1" << std::endl;
                 return;
             }
             // process the child
@@ -140,8 +146,8 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
             }
             else if(!states.empty()) // assertion
             {
-                std::cout << "Shouldn't be here" << std::endl;
-                return;
+                std::cout << "Shouldn't be here 2" << std::endl;
+                //return;
             }
         }
         // remember to increament number of byte already read.

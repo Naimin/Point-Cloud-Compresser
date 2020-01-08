@@ -76,6 +76,9 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
             std::cout << "Sub root Offset: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << std::endl;
 #endif
         }
+        // add a node size entry to the encoded data, we will update this value as we encode
+        auto nodeSizePtr = data.addNodeSize();
+
         // update the currentIndex
         currentIndex = itr.first;
 #ifdef DEBUG_ENCODING
@@ -94,6 +97,8 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
             // Write into the data when evaluating a new node.
             unsigned char child = trans.node.children;
             data.add(child);
+            // track the node size, whenever we add a new child
+            (*nodeSizePtr)++;
 #ifdef DEBUG_ENCODING
             std::cout << (int)child << std::endl;
 #endif
@@ -118,6 +123,9 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
                 }
             }
         }
+#ifdef DEBUG_ENCODING
+        std::cout << "Node Size encoded: " << *nodeSizePtr << std::endl;
+#endif
     }
 }
 
@@ -165,6 +173,8 @@ size_t CPC::Encoder::computeSubOctreeSize(Octree& octree, unsigned char level)
             totalSize += jumpAddressSize;
             ++numOfOffsetAddress;
         }
+        // add the node size
+        totalSize += sizeof(unsigned int);
         currentIndex = itr.first;
     }
     //std::cout << "Level: " << (int)level << " Full Address: " << numOfFullAddress << "," << numOfFullAddress*fullAddressSize << " Offset Address: " << numOfOffsetAddress << "," << numOfOffsetAddress*jumpAddressSize << std::endl;

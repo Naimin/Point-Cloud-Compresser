@@ -47,18 +47,18 @@ namespace CPC
                 add(raw[i]);
             }
         }
-
+        // return the pointer to the encoded data and advance the size
+        unsigned int* addNodeSize()
+        {
+            unsigned int* nodeSizePtr = (unsigned int*)&(encodedData[currentSize]);
+            *nodeSizePtr = 0;
+            currentSize += sizeof(unsigned int);
+            return nodeSizePtr;
+        }
         template <class T>
         void read(T& val)
         {
-            T raw;
-            memcpy(&(raw), &(encodedData[currentSize]), sizeof(val));
-            unsigned char* rawPtr = (unsigned char*)&raw;
-            unsigned char* valPtr = (unsigned char*)&val;
-            for (int i = sizeof(val) - 1; i > -1; --i)
-            {
-                valPtr[i] = rawPtr[sizeof(val) - 1 - i];
-            }
+            memcpy(&(val), &(encodedData[currentSize]), sizeof(val));
             currentSize += sizeof(val);
         }
 
