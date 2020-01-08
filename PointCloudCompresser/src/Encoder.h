@@ -58,6 +58,18 @@ namespace CPC
         template <class T>
         void read(T& val)
         {
+            T raw;
+            memcpy(&(raw), &(encodedData[currentSize]), sizeof(val));
+            unsigned char* rawPtr = (unsigned char*)&raw;
+            unsigned char* valPtr = (unsigned char*)&val;
+            for (int i = sizeof(val) - 1; i > -1; --i)
+            {
+                valPtr[i] = rawPtr[sizeof(val) - 1 - i];
+            }
+            currentSize += sizeof(val);
+        }
+        void read(unsigned int& val)
+        {
             memcpy(&(val), &(encodedData[currentSize]), sizeof(val));
             currentSize += sizeof(val);
         }
