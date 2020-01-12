@@ -90,12 +90,21 @@ void CPC::Decoder::decodeNodeHeader(size_t& pos, Index& index, EncodedData& data
 
 void CPC::Decoder::decodeNode(size_t& pos, const Index& index, EncodedData& data, Octree& octree)
 {
+    if (decodedNodes.find(index) != decodedNodes.end())
+    {
+#ifdef DEBUG_ENCODING
+        std::cout << "Already decoded before." << std::endl;
+#endif
+        return;
+    }
+    decodedNodes.insert(index);
+
     // Each sub-root node need to be process
     unsigned char currentLevel = data.subOctreeDepth;
 
     unsigned char rootChild = data.readNext(pos);
 #ifdef DEBUG_ENCODING
-    std::cout << "Current Sub root: " << (int)currentIndex.x() << " , " << (int)currentIndex.y() << " , " << (int)currentIndex.z() << std::endl;
+    std::cout << "Current Sub root: " << (int)index.x() << " , " << (int)index.y() << " , " << (int)index.z() << std::endl;
     std::cout << (int)rootChild << std::endl;
 #endif
 

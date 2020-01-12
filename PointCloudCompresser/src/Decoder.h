@@ -24,6 +24,8 @@ namespace CPC
             void DepthFirstTransversal(EncodedData& data, Octree& octree);
             Index decodedFullAddress(const FullAddress& index);
             Eigen::Vector3i decodedOffsetAddress(const OffsetAddress& index);
+            
+            std::set<Index> decodedNodes;
     };
 
 }
