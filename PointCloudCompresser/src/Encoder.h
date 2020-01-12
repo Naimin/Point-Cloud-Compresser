@@ -44,11 +44,11 @@ namespace CPC
         }
 
         // return the pointer to the encoded data and advance the size
-        unsigned int* addNodeSize()
+        size_t* addNodeSize()
         {
-            unsigned int* nodeSizePtr = (unsigned int*)&(encodedData[currentSize]);
+            size_t* nodeSizePtr = (size_t*)&(encodedData[currentSize]);
             *nodeSizePtr = 0;
-            currentSize += sizeof(unsigned int);
+            currentSize += sizeof(size_t);
             return nodeSizePtr;
         }
 
@@ -59,23 +59,17 @@ namespace CPC
             pos += sizeof(val);
         }
 
-        template <class T>
-        void read(T& val)
-        {
-            read(currentSize, val);
-        }
-
-        unsigned char readNext()
+        unsigned char readNext(size_t& pos)
         {
             unsigned char next;
-            read(currentSize, next);
+            read(pos, next);
             return next;
         }
 
-        bool checkFullAddressFlag()
+        bool checkFullAddressFlag(size_t& pos)
         {
             // Only peek at the data, don't advance it
-            OffsetAddress offsetAddress = *((OffsetAddress*)&(encodedData[currentSize]));
+            OffsetAddress offsetAddress = *((OffsetAddress*)&(encodedData[pos]));
             return (offsetAddress & 0x80000000) != 0;
         }
 

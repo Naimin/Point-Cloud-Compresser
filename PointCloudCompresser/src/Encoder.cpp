@@ -173,7 +173,7 @@ size_t CPC::Encoder::computeSubOctreeSize(Octree& octree, unsigned char level)
             ++numOfOffsetAddress;
         }
         // add the node size
-        totalSize += sizeof(unsigned int);
+        totalSize += sizeof(size_t);
         currentIndex = itr.first;
     }
     //std::cout << "Level: " << (int)level << " Full Address: " << numOfFullAddress << "," << numOfFullAddress*fullAddressSize << " Offset Address: " << numOfOffsetAddress << "," << numOfOffsetAddress*jumpAddressSize << std::endl;
