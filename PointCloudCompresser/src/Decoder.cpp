@@ -42,7 +42,7 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
             currentIndex = decodedFullAddress(mortonCode);
 #ifdef DEBUG_ENCODING
             unsigned char* chars = (unsigned char*)&mortonCode;
-            std::cout << "Sub root: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << " , "
+            std::cout << "Full address root: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << " , "
                                       << (int)chars[4] << " , " << (int)chars[5] << " , " << (int)chars[6] << " , " << (int)chars[7] << std::endl;
 #endif
         }
@@ -65,13 +65,9 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
         }
         unsigned int nodeSize = 0;
         data.read(nodeSize);
-//#ifdef DEBUG_ENCODING
-        std::cout << "Node Size Decoded: " << nodeSize << std::endl;
-//#endif
 
         unsigned char rootChild = data.readNext();
 #ifdef DEBUG_ENCODING
-        unsigned char* chars = (unsigned char*)&mortonCode;
         std::cout << "Current Sub root: " << (int)currentIndex.x() << " , " << (int)currentIndex.y() << " , " << (int)currentIndex.z() << std::endl;
         std::cout << (int)rootChild << std::endl;
 #endif
@@ -152,6 +148,10 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
         }
         // remember to increament number of byte already read.
         i = data.currentSize;
+
+#ifdef DEBUG_ENCODING
+        std::cout << "Node Size: " << nodeSize << std::endl;
+#endif
     }
 }
 

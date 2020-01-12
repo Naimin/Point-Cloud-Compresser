@@ -62,7 +62,7 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
             data.add(mortonCode);
 #ifdef DEBUG_ENCODING
             unsigned char* chars = (unsigned char*)&mortonCode;
-            std::cout << "Sub root: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << " , "
+            std::cout << "Full address root: " << (int)chars[0] << " , " << (int)chars[1] << " , " << (int)chars[2] << " , " << (int)chars[3] << " , "
                                       << (int)chars[4] << " , " << (int)chars[5] << " , " << (int)chars[6] << " , " << (int)chars[7] << std::endl;
 #endif
         }
@@ -82,7 +82,6 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
         // update the currentIndex
         currentIndex = itr.first;
 #ifdef DEBUG_ENCODING
-        unsigned char* chars = (unsigned char*)&mortonCode;
         std::cout << "Current Sub root: " << (int)currentIndex.x() << " , " << (int)currentIndex.y() << " , " << (int)currentIndex.z() << std::endl;
 #endif
         
@@ -124,7 +123,7 @@ void Encoder::DepthFirstTransversal(Octree & octree, BestStats& bestStats, Encod
             }
         }
 #ifdef DEBUG_ENCODING
-        std::cout << "Node Size encoded: " << *nodeSizePtr << std::endl;
+        std::cout << "Node Size: " << *nodeSizePtr << std::endl;
 #endif
     }
 }

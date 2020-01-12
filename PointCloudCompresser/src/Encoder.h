@@ -30,23 +30,19 @@ namespace CPC
         EncodedData() : maxDepth(0), currentSize(0) {};
         bool isValid();
 
-        void add(unsigned char val)
-        {
-            encodedData[currentSize++] = val;
-        }
-        void add(char val)
-        {
-            encodedData[currentSize++] = val;
-        }
         template <class T>
-        void add(T val)
+        void add(size_t& pos, T& val)
         {
-            unsigned char* raw = (unsigned char*)&val;
-            for (int i = sizeof(val)-1; i > -1; --i)
-            {
-                add(raw[i]);
-            }
+            memcpy(&(encodedData[pos]), &(val), sizeof(val));
+            pos += sizeof(val);
         }
+
+        template <class T>
+        void add(T& val)
+        {
+            add(currentSize, val);
+        }
+
         // return the pointer to the encoded data and advance the size
         unsigned int* addNodeSize()
         {
@@ -55,34 +51,32 @@ namespace CPC
             currentSize += sizeof(unsigned int);
             return nodeSizePtr;
         }
+
+        template <class T>
+        void read(size_t& pos, T& val)
+        {
+            memcpy(&(val), &(encodedData[pos]), sizeof(val));
+            pos += sizeof(val);
+        }
+
         template <class T>
         void read(T& val)
         {
-            T raw;
-            memcpy(&(raw), &(encodedData[currentSize]), sizeof(val));
-            unsigned char* rawPtr = (unsigned char*)&raw;
-            unsigned char* valPtr = (unsigned char*)&val;
-            for (int i = sizeof(val) - 1; i > -1; --i)
-            {
-                valPtr[i] = rawPtr[sizeof(val) - 1 - i];
-            }
-            currentSize += sizeof(val);
-        }
-        void read(unsigned int& val)
-        {
-            memcpy(&(val), &(encodedData[currentSize]), sizeof(val));
-            currentSize += sizeof(val);
+            read(currentSize, val);
         }
 
         unsigned char readNext()
         {
-            return encodedData[currentSize++];
+            unsigned char next;
+            read(currentSize, next);
+            return next;
         }
 
         bool checkFullAddressFlag()
         {
             // Only peek at the data, don't advance it
-            return (encodedData[currentSize] & 0x80) != 0;
+            OffsetAddress offsetAddress = *((OffsetAddress*)&(encodedData[currentSize]));
+            return (offsetAddress & 0x80000000) != 0;
         }
 
         void resize(size_t size)
