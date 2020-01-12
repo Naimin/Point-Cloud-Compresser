@@ -17,6 +17,8 @@ namespace CPC
             virtual ~Decoder();
 
             Octree decode(EncodedData& data);
+            void decodeNodeHeader(size_t& pos, Index& index, EncodedData& data, size_t& nodeSize);
+            void decodeNode(size_t& pos, const Index& index, EncodedData& data, Octree& octree);
 
         protected:
             void DepthFirstTransversal(EncodedData& data, Octree& octree);
