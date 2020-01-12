@@ -133,7 +133,7 @@ void Octree::generate(unsigned int maxDepth, PointCloud& pointCloud)
     //for(size_t index = 0; index < pointCloud.positions.size(); ++index)
     {
         Eigen::Vector3f& pos = pointCloud.positions[index];
-        auto leafAddress = computeLeafAddress(bbox, leafCellSize, pos);
+        auto leafAddress = computeLeafAddress(pos);
         size_t transversalCounter = 0;
         addLeaf(maxDepth, leafAddress, transversalCounter);
         bottomUpTransverseCounter += transversalCounter;
@@ -168,7 +168,7 @@ Eigen::Vector3f Octree::computeLeafCellSize(const unsigned int maxDepth, const B
     return volume;
 }
 
-Index Octree::computeLeafAddress(const BoundingBox& bbox, const Eigen::Vector3f& leafCellSize, const Eigen::Vector3f& point)
+Index Octree::computeLeafAddress(const Eigen::Vector3f& point)
 {
     Vector3f localPos = point - bbox.min;
 
@@ -187,6 +187,16 @@ Index Octree::computeLeafAddress(const BoundingBox& bbox, const Eigen::Vector3f&
 Index Octree::computeParentAddress(const Index& index)
 {
     return Index(index.x() / 2, index.y() / 2, index.z() / 2);
+}
+
+Index Octree::computeParentAddress(const unsigned int currentLevel, const unsigned int parentLevel, const Index& index)
+{
+    Index currentIndex = index;
+    for (unsigned int i = currentLevel; i > parentLevel; --i)
+    {
+        currentIndex = computeParentAddress(currentIndex);
+    }
+    return currentIndex;
 }
 
 unsigned char Octree::computeOctreeChildIndex(const Index& index)

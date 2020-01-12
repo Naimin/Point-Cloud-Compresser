@@ -1,6 +1,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <random>
 #include <boost/filesystem/path.hpp>
 #include <boost/algorithm/string.hpp>
 
@@ -74,6 +75,65 @@ int handleArgument(int argc, char* argv[], std::string& input, std::string& outp
     return 0;
 }
 
+float get_random()
+{
+    static std::default_random_engine e;
+    static std::uniform_real_distribution<> dis(0, 1); // range 0 - 1
+    return (float)dis(e);
+}
+
+void testIntersection(EncodedData& data, PointCloud& pointCloud)
+{
+    Decoder decoder;
+    auto subNodePos = decoder.decodeNodeHeaders(data);
+    Octree octree(data.maxDepth, data.sceneBoundingBox);
+
+    // generate the random points
+    /*srand(0);
+    std::vector<Eigen::Vector3f> randPoints(5000000);
+
+    float xSize = data.sceneBoundingBox.max.x() - data.sceneBoundingBox.min.x();
+    float ySize = data.sceneBoundingBox.max.y() - data.sceneBoundingBox.min.y();
+    float zSize = data.sceneBoundingBox.max.z() - data.sceneBoundingBox.min.z();
+
+    for (auto& point : randPoints)
+    {
+        point.x() = data.sceneBoundingBox.min.x() + (get_random() * xSize);
+        point.y() = data.sceneBoundingBox.min.y() + (get_random() * ySize);
+        point.z() = data.sceneBoundingBox.min.z() + (get_random() * zSize);
+    }*/
+
+    int hitCounter = 0;
+    int alreadyExist = 0;
+    int subnodeNotFound = 0;
+    int decodeNotFound = 0;
+    int decodeFound = 0;
+
+    auto startTime = std::clock();
+    for (auto& point : pointCloud.positions)
+    {
+        intersectionState state;
+        if (decoder.intersect(point, data, octree, subNodePos, state))
+        {
+            ++hitCounter;
+        }
+
+        switch (state)
+        {
+            case ALREADY_EXIST: ++alreadyExist; break;
+            case SUBNODE_NOT_FOUND: ++subnodeNotFound; break;
+            case DECODE_NOT_FOUND: ++decodeNotFound; break;
+            case DECODE_FOUND: ++decodeFound; break;
+        }
+    }
+    std::cout << "Intersection Timing " << std::clock() - startTime / (CLOCKS_PER_SEC / 1000) << std::endl;
+    std::cout << "Intersection found: " << hitCounter << std::endl;
+    std::cout << "ALREADY_EXIST: " << alreadyExist << std::endl;
+    std::cout << "SUBNODE_NOT_FOUND: " << subnodeNotFound << std::endl;
+    std::cout << "DECODE_NOT_FOUND: " << decodeNotFound << std::endl;
+    std::cout << "DECODE_FOUND: " << decodeFound << std::endl;
+}
+
 int main(int argc, char* argv[])
 {
     std::string input, output;
@@ -127,6 +187,9 @@ int main(int argc, char* argv[])
         auto encodedData = encoder.encode(octree, (unsigned char)forceDepth);
         auto duration = std::clock() - startTime;
         std::cout << "Generation of Octree and Encoding Octree Timing " << octreeTime - startTime / (CLOCKS_PER_SEC / 1000) << " : " << std::clock() - octreeTime / (CLOCKS_PER_SEC / 1000) << std::endl;
+
+        // Run the intersection test
+        testIntersection(encodedData, pointCloud);
 
         // write cpc
         std::cout << "Compressing and saving to " << output << std::endl;

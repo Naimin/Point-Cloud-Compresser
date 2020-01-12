@@ -25,12 +25,19 @@ Octree Decoder::decode(EncodedData& data)
 
 void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
 {
-    auto& encodedData = data.encodedData;
+    auto subNodePos = decodeNodeHeaders(data);
 
-    std::stack<DecoderTransversalData> states;
+    // Iterate through subNodePos to decode the subnode
+    for (auto& subNode : subNodePos)
+    {
+        decodeNode(subNode.second, subNode.first, data, octree);
+    }
+}
 
+std::map<Index, size_t> CPC::Decoder::decodeNodeHeaders(EncodedData& data)
+{
     Index currentIndex(0, 0, 0);
-    
+
     std::map<Index, size_t> subNodePos;
 
     // Decode all the subnode header and store their position in the subNodePos
@@ -46,11 +53,7 @@ void Decoder::DepthFirstTransversal(EncodedData & data, Octree & octree)
         i = pos + nodeSize;
     }
 
-    // Iterate through subNodePos to decode the subnode
-    for (auto& subNode : subNodePos)
-    {
-        decodeNode(subNode.second, subNode.first, data, octree);
-    }
+    return subNodePos;
 }
 
 void CPC::Decoder::decodeNodeHeader(size_t& pos, Index& index, EncodedData& data, size_t& nodeSize)
@@ -185,7 +188,7 @@ void CPC::Decoder::decodeNode(size_t& pos, const Index& index, EncodedData& data
     }
 
 #ifdef DEBUG_ENCODING
-    std::cout << "Node Size: " << nodeSize << std::endl;
+  //  std::cout << "Node Size: " << nodeSize << std::endl;
 #endif    
 }
 
@@ -216,4 +219,42 @@ Eigen::Vector3i CPC::Decoder::decodedOffsetAddress(const OffsetAddress & code)
 void CPC::DecoderTransversalData::processChild(unsigned char child)
 {
     node.removeChild(child);
+}
+
+bool CPC::Decoder::intersect(const Eigen::Vector3f& point, EncodedData& data, Octree& octree, std::map<Index, size_t>& subNodePos, intersectionState& state)
+{
+    // Compute the leaf node address
+    auto leafAddress = octree.computeLeafAddress(point);
+    leafAddress = octree.computeParentAddress(leafAddress);
+    // We already decoded this leaf node before
+    if (octree.nodeExist(octree.getMaxDepth()-1, leafAddress))
+    {
+        state = ALREADY_EXIST;
+        return true;
+    }
+
+    // If not already decoded try to find the subnode
+    auto subNodeAddress = octree.computeParentAddress(octree.getMaxDepth()-1, data.subOctreeDepth, leafAddress);
+    // If the subnode address don't exist this mean the child also don't exist
+    auto subNodeItr = subNodePos.find(subNodeAddress);
+    if (subNodeItr == subNodePos.end())
+    {
+        state = SUBNODE_NOT_FOUND;
+        return false;
+    }
+        
+    // Decode the subnode
+    decodeNode(subNodeItr->second, subNodeItr->first, data, octree);
+
+    // Check again if this leaf node get decoded just now.
+    if (octree.nodeExist(octree.getMaxDepth()-1, leafAddress))
+    {
+        state = DECODE_FOUND;
+        return true;
+    }
+    else
+    {
+        state = DECODE_NOT_FOUND;
+        return false;
+    }
 }

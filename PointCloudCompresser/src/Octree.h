@@ -40,15 +40,20 @@ namespace CPC
             bool addNodeRecursive(const unsigned int level, const Index& index, const unsigned int childIndex, size_t& transversalCounter);
             static Vector3ui getChildOffset(unsigned char childId);
 
+            Index computeLeafAddress(const Eigen::Vector3f& point);
+            Index computeParentAddress(const unsigned int currentLevel, const unsigned int parentLevel, const Index& index);
+            Index computeParentAddress(const Index& index);
+            bool nodeExist(const unsigned int level, const Index& index);
+
         protected:
             void generate(unsigned int maxDepth, PointCloud& pointCloud);
             BoundingBox computeBoundingBox(PointCloud& pointCloud);
             Eigen::Vector3f computeLeafCellSize(const unsigned int maxDepth, const BoundingBox& bbox);
-            Index computeLeafAddress(const BoundingBox& bbox, const Eigen::Vector3f& leafCellSize, const Eigen::Vector3f& point);
-            Index computeParentAddress(const Index& index);
+            
+            
             unsigned char computeOctreeChildIndex(const Index& index);
             bool addLeaf(const unsigned int maxDepth, const Index& index, size_t& transversalCounter);
-            bool nodeExist(const unsigned int level, const Index& index);
+            
             
             void addNodeChild(const unsigned int level, const Index& parentIndex, const unsigned int childIndex);
 

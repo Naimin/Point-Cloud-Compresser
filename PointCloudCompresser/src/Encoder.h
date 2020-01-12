@@ -71,7 +71,7 @@ namespace CPC
             // Only peek at the data, don't advance it
             OffsetAddress offsetAddress = *((OffsetAddress*)&(encodedData[pos]));
             FullAddress fullAddress = *((FullAddress*)&(encodedData[pos]));
-            return (offsetAddress & 0x80000000) != 0 || (fullAddress & 0x8000000000000000);
+            return (offsetAddress & 0x80000000) || (fullAddress & 0x8000000000000000);
         }
 
         void resize(size_t size)
