@@ -28,7 +28,7 @@ EncodedData Encoder::encode(Octree & octree, unsigned char forceSubOctreeLevel)
     BestStats best;
     // Compute the optimal sub octree depth if no force depth is specified.
     best = (forceSubOctreeLevel != (unsigned char)-1) ? BestStats(computeSubOctreeSize(octree, forceSubOctreeLevel), forceSubOctreeLevel) : computeBestSubOctreeLevel(octree);
-    std::cout << ((forceSubOctreeLevel != (unsigned char)-1) ? "Forced " : "") << "Using Level: " << (int)best.level << " TotalSize: " << best.size << std::endl;
+    //std::cout << ((forceSubOctreeLevel != (unsigned char)-1) ? "Forced " : "") << "Using Level: " << (int)best.level << " TotalSize: " << best.size << std::endl;
 
     data.subOctreeDepth = best.level;
     DepthFirstTransversal(octree, best, data);

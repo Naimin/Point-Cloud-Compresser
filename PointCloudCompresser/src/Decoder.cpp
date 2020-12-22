@@ -138,7 +138,7 @@ void CPC::Decoder::decodeNode(size_t& pos, const Index& index, EncodedData& data
         if (parent.node.children == 0) // assertion
         {
             states.pop();
-            std::cout << "Shouldn't be here 1" << std::endl;
+            //std::cout << "Shouldn't be here 1" << std::endl;
             return;
         }
         // process the child
@@ -182,7 +182,7 @@ void CPC::Decoder::decodeNode(size_t& pos, const Index& index, EncodedData& data
         }
         else if (!states.empty()) // assertion
         {
-            std::cout << "Shouldn't be here 2" << std::endl;
+            //std::cout << "Shouldn't be here 2" << std::endl;
             //return;
         }
     }

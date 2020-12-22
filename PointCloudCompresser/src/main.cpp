@@ -3,6 +3,7 @@
 #include <vector>
 #include <random>
 #include <boost/filesystem/path.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include "Octree.h"
@@ -11,6 +12,21 @@
 #include "Decoder.h"
 
 using namespace CPC;
+
+int pointcount = 0;
+int memoryUseLevel[16];
+int intersectiontimingLevel[16];
+int classicTiming = 0;
+int octreeTime = 0;
+int encodeTime[16];
+int compressSizeLevel[16];
+int bottomup = 0;
+int topdown = 0;
+int zpfTime = 0;
+int zpfSize = 0;
+int merryTime = 0;
+int merrySize = 0;
+
 
 static void show_usage(std::string name)
 {
@@ -78,11 +94,11 @@ int handleArgument(int argc, char* argv[], std::string& input, std::string& outp
 float get_random()
 {
     static std::default_random_engine e;
-    static std::uniform_real_distribution<> dis(0, 1); // range 0 - 1
+    static std::uniform_real_distribution<> dis(0, 2); // range 0 - 1
     return (float)dis(e);
 }
 
-void testIntersection(EncodedData& data, PointCloud& pointCloud)
+void testIntersection(EncodedData& data, PointCloud& pointCloud, int level)
 {
     Decoder decoder;
     auto subNodePos = decoder.decodeNodeHeaders(data);
@@ -109,29 +125,91 @@ void testIntersection(EncodedData& data, PointCloud& pointCloud)
     int decodeNotFound = 0;
     int decodeFound = 0;
 
-    auto startTime = std::clock();
-    for (auto& point : pointCloud.positions)
+    //simulate bounding box check
+    /*
+    std::vector<CPC::BoundingBox> boxes(16);
+    std::vector<int> flag(pointCloud.positions.size());
+    boxes[0] = data.sceneBoundingBox;
+    for (int i = 1; i < boxes.size(); ++i)
     {
+        boxes[i].max = boxes[i - 1].max * get_random();
+        boxes[i].min = boxes[i - 1].min * get_random();
+    }
+
+    auto bbTime = std::clock();
+    for (int i = 0; i < pointCloud.positions.size(); ++i)
+    {
+        auto point = pointCloud.positions[i];
+        for (int j = 0; j < 17; ++j)
+        {    
+            for (int k = 0; k < 18; ++k)
+            {
+                if (boxes[j].isInside(point))
+                {
+                    flag[i] += rand();
+                }
+                else
+                {
+                    flag[i] += rand() + 1;
+                }
+            }
+        }
+    }
+    std::cout << "Bounding box Timing " << (std::clock() - bbTime) / (CLOCKS_PER_SEC / 1000) << std::endl;
+    */
+    auto startTime = std::clock();
+    //for (auto& point : pointCloud.positions)
+    for(size_t i = 0; i < pointCloud.positions.size() * 0.05f; ++i)
+    {
+        auto& point = pointCloud.positions[i];
         intersectionState state;
         if (decoder.intersect(point, data, octree, subNodePos, state))
         {
             ++hitCounter;
         }
-
+        /*
         switch (state)
         {
             case ALREADY_EXIST: ++alreadyExist; break;
             case SUBNODE_NOT_FOUND: ++subnodeNotFound; break;
             case DECODE_NOT_FOUND: ++decodeNotFound; break;
             case DECODE_FOUND: ++decodeFound; break;
-        }
+        }*/
     }
-    std::cout << "Intersection Timing " << std::clock() - startTime / (CLOCKS_PER_SEC / 1000) << std::endl;
-    std::cout << "Intersection found: " << hitCounter << std::endl;
+//    std::cout << (std::clock() - startTime) / (CLOCKS_PER_SEC / 1000) << std::endl;
+    intersectiontimingLevel[level] = (std::clock() - startTime) / CLOCKS_PER_SEC;
+
+    // compute the memory usage of the octree
+    size_t memoryUsed = 0;
+    const size_t perNodeMem = sizeof(Index) + sizeof(Node);
+    for (auto& level : octree.getLevels())
+    {
+        memoryUsed += level.size() * perNodeMem;
+    }
+    memoryUseLevel[level] = memoryUsed;
+
+    //std::cout << "memory used:" << memoryUsed << std::endl;
+    /*std::cout << "Intersection found: " << hitCounter << std::endl;
     std::cout << "ALREADY_EXIST: " << alreadyExist << std::endl;
     std::cout << "SUBNODE_NOT_FOUND: " << subnodeNotFound << std::endl;
     std::cout << "DECODE_NOT_FOUND: " << decodeNotFound << std::endl;
-    std::cout << "DECODE_FOUND: " << decodeFound << std::endl;
+    std::cout << "DECODE_FOUND: " << decodeFound << std::endl;*/
+}
+
+void testZPF(size_t pointcount)
+{
+    std::stringstream command;
+    command << "D:\\Master\\PointCloudCompresser\\thirdparty\\zpf\\simple.exe " << pointcount;
+    std::cout << command.str() << std::endl;
+    int error = system(command.str().c_str());
+}
+
+void testOctomap(std::string path)
+{
+    std::stringstream command;
+    command << "D:\\Master\\PointCloudCompresser\\thirdparty\\octomap\\simple_example.exe " << path;
+    std::cout << command.str() << std::endl;
+    int error = system(command.str().c_str());
 }
 
 int main(int argc, char* argv[])
@@ -160,6 +238,7 @@ int main(int argc, char* argv[])
         std::cout << "Loading point cloud: " << inputPath.string() << std::endl;
         PointCloudIO io;
         auto pointCloud = io.loadPly(inputPath.string());
+        pointcount = pointCloud.positions.size();
 
         float maxf = 0.12f;
         if (pointCloud.hasScalar)
@@ -179,21 +258,64 @@ int main(int argc, char* argv[])
         // Generate Octree
         std::cout << "Generating Bottom-Up Octree..." << std::endl;
         Octree octree(depth, pointCloud);
-        auto octreeTime = std::clock();
+        octreeTime = (std::clock() - startTime) / CLOCKS_PER_SEC;
+        bottomup = octree.bottomup;
+        topdown = octree.topdown;
 
-        // Encode
-        std::cout << "Encoding Octree..." << std::endl;
-        Encoder encoder;
-        auto encodedData = encoder.encode(octree, (unsigned char)forceDepth);
-        auto duration = std::clock() - startTime;
-        std::cout << "Generation of Octree and Encoding Octree Timing " << octreeTime - startTime / (CLOCKS_PER_SEC / 1000) << " : " << std::clock() - octreeTime / (CLOCKS_PER_SEC / 1000) << std::endl;
+        std::vector<CPC::BoundingBox> boxes(16);
+        std::vector<int> flag(pointCloud.positions.size());
+        boxes[0] = octree.getBoundingBox();
+        for (int i = 1; i < boxes.size(); ++i)
+        {
+            boxes[i].max = boxes[i - 1].max * get_random();
+            boxes[i].min = boxes[i - 1].min * get_random();
+        }
+        
+        auto bbTime = std::clock();
+        for (int i = 0; i < pointCloud.positions.size() * 0.05; ++i)
+        {
+            auto point = pointCloud.positions[i];
+            for (int j = 0; j < 17; ++j)
+            {
+                for (int k = 0; k < 18; ++k)
+                {
+                    if (boxes[j].isInside(point))
+                    {
+                        flag[i] += rand();
+                    }
+                    else
+                    {
+                        flag[i] += rand() + 1;
+                    }
+                }
+            }
+        }
+        //std::cout << "Bounding box Timing " << (std::clock() - bbTime) / (CLOCKS_PER_SEC / 1000) << std::endl;
+        classicTiming = (std::clock() - bbTime) / CLOCKS_PER_SEC;
+        
+        for (int i = 0; i < 16; ++i)
+        {
+            //int i = 12;
+            // Encode
+            //std::cout << "Encoding Octree..." << std::endl;
+            auto encodeStart = std::clock();
+            Encoder encoder;
+            auto encodedData = encoder.encode(octree, i);
+            auto duration = std::clock() - startTime;
+            encodeTime[i] = (std::clock() - encodeStart) / CLOCKS_PER_SEC;
+            //std::cout << "Generation of Octree and Encoding Octree Timing " << octreeTime - startTime / (CLOCKS_PER_SEC / 1000) << " : " << std::clock() - octreeTime / (CLOCKS_PER_SEC / 1000) << std::endl;
+            //std::cout << "Level " << i << std::endl;
+            // Run the intersection test
+            testIntersection(encodedData, pointCloud, i);
 
-        // Run the intersection test
-        testIntersection(encodedData, pointCloud);
+            auto out_index = inputPath.parent_path().append(inputPath.stem().concat(std::to_string(i)).concat(".cpc").string()).string();
+            io.saveCpc(out_index, encodedData);
 
+            compressSizeLevel[i] = boost::filesystem::file_size(out_index);
+        }
         // write cpc
         std::cout << "Compressing and saving to " << output << std::endl;
-        io.saveCpc(output, encodedData);
+        //io.saveCpc(output, encodedData);
     }
     // if input is cpc, do decoding
     else if (boost::iequals(inputPath.extension().c_str(), ".cpc"))
@@ -220,5 +342,22 @@ int main(int argc, char* argv[])
         io.savePly(output, pointCloud);
     }
     
+    testZPF(pointcount);
+    std::cout << input << std::endl;
+    std::cout << pointcount << std::endl;
+    std::cout << boost::filesystem::file_size(input) << std::endl;
+    std::cout << classicTiming << std::endl;
+    std::cout << octreeTime << std::endl;
+    std::cout <<bottomup << std::endl;
+    std::cout << topdown << std::endl;
+    for(int i = 0; i < 16; ++i)
+        std::cout << memoryUseLevel[i] << std::endl;
+    for (int i = 0; i < 16; ++i)
+        std::cout << intersectiontimingLevel[i] << std::endl;
+    for (int i = 0; i < 16; ++i)
+        std::cout << compressSizeLevel[i] / 1024 << std::endl;
+    for (int i = 0; i < 16; ++i)
+        std::cout << encodeTime[i] << std::endl;
+
     return 0;
 }

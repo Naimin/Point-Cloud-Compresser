@@ -139,8 +139,10 @@ void Octree::generate(unsigned int maxDepth, PointCloud& pointCloud)
         bottomUpTransverseCounter += transversalCounter;
     });
 
-    std::cout << "BottomUp transversal: " << bottomUpTransverseCounter << std::endl;
-    std::cout << "Normal transversal: " << pointCloud.positions.size() * maxDepth << std::endl;
+    //std::cout << "BottomUp transversal: " << bottomUpTransverseCounter << std::endl;
+    //std::cout << "Normal transversal: " << pointCloud.positions.size() * maxDepth << std::endl;
+    bottomup = bottomUpTransverseCounter;
+    topdown = pointCloud.positions.size() * maxDepth;
 }
 
 BoundingBox Octree::computeBoundingBox(PointCloud & pointCloud)

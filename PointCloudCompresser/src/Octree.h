@@ -45,6 +45,9 @@ namespace CPC
             Index computeParentAddress(const Index& index);
             bool nodeExist(const unsigned int level, const Index& index);
 
+            size_t bottomup;
+            size_t topdown;
+
         protected:
             void generate(unsigned int maxDepth, PointCloud& pointCloud);
             BoundingBox computeBoundingBox(PointCloud& pointCloud);

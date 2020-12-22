@@ -7,6 +7,7 @@ namespace CPC
     {
         BoundingBox();
         void expand(const Eigen::Vector3f& point);
+        bool isInside(const Eigen::Vector3f& point);
 
         Eigen::Vector3f min, max;
     };

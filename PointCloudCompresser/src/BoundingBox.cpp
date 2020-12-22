@@ -21,3 +21,11 @@ void BoundingBox::expand(const Eigen::Vector3f & point)
     max.y() = max.y() > point.y() ? max.y() : point.y();
     max.z() = max.z() > point.z() ? max.z() : point.z();
 }
+
+bool BoundingBox::isInside(const Eigen::Vector3f& point)
+{
+    return (point.x() >= min.x() && point.x() <= max.x() &&
+            point.y() >= min.y() && point.y() <= max.y() &&
+            point.z() >= min.z() && point.z() <= max.z() );
+}
+
