@@ -125,40 +125,8 @@ void testIntersection(EncodedData& data, PointCloud& pointCloud, int level)
     int decodeNotFound = 0;
     int decodeFound = 0;
 
-    //simulate bounding box check
-    /*
-    std::vector<CPC::BoundingBox> boxes(16);
-    std::vector<int> flag(pointCloud.positions.size());
-    boxes[0] = data.sceneBoundingBox;
-    for (int i = 1; i < boxes.size(); ++i)
-    {
-        boxes[i].max = boxes[i - 1].max * get_random();
-        boxes[i].min = boxes[i - 1].min * get_random();
-    }
 
-    auto bbTime = std::clock();
-    for (int i = 0; i < pointCloud.positions.size(); ++i)
-    {
-        auto point = pointCloud.positions[i];
-        for (int j = 0; j < 17; ++j)
-        {    
-            for (int k = 0; k < 18; ++k)
-            {
-                if (boxes[j].isInside(point))
-                {
-                    flag[i] += rand();
-                }
-                else
-                {
-                    flag[i] += rand() + 1;
-                }
-            }
-        }
-    }
-    std::cout << "Bounding box Timing " << (std::clock() - bbTime) / (CLOCKS_PER_SEC / 1000) << std::endl;
-    */
     auto startTime = std::clock();
-    //for (auto& point : pointCloud.positions)
     for(size_t i = 0; i < pointCloud.positions.size() * 0.05f; ++i)
     {
         auto& point = pointCloud.positions[i];
@@ -343,6 +311,7 @@ int main(int argc, char* argv[])
     }
     
     testZPF(pointcount);
+    testOctomap(input);
     std::cout << input << std::endl;
     std::cout << pointcount << std::endl;
     std::cout << boost::filesystem::file_size(input) << std::endl;
